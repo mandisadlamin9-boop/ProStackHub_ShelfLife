@@ -1,5 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const { sql, databaseConnection } = require("./config/database");
@@ -130,9 +131,8 @@ app.post("/api/auth/register", async (req, res) => {
     });
   }
 });
-
 /* =========================================================
-   LOGIN
+LOGIN
 ========================================================= */
 
 app.post("/api/auth/login", async (req, res) => {
@@ -209,6 +209,21 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     /* -----------------------------------------------------
+       CREATE JWT
+    ----------------------------------------------------- */
+
+    const token = jwt.sign(
+      {
+        accountId: account.AccountId,
+        email: account.Email,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      },
+    );
+
+    /* -----------------------------------------------------
        REMOVE PASSWORD HASH FROM RESPONSE
     ----------------------------------------------------- */
 
@@ -220,6 +235,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     return res.status(200).json({
       message: "Login successful.",
+      token,
       account,
     });
   } catch (error) {
