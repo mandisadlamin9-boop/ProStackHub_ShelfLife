@@ -1,44 +1,66 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
-  const [activePage, setActivePage] = useState("Discover");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [books, setBooks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const navigation = [
-    {
-      label: "Discover",
-      icon: "✦",
-    },
-    {
-      label: "My Shelf",
-      icon: "▱",
-    },
-    {
-      label: "Reading",
-      icon: "◷",
-    },
-    {
-      label: "Statistics",
-      icon: "↗",
-    },
-  ];
+  const fetchBooks = async (query = "fiction") => {
+    try {
+      setLoading(true);
+      setError("");
 
-  const handleNavigation = (label) => {
-    setActivePage(label);
-    setMobileMenuOpen(false);
+      const response = await fetch(
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(
+          query,
+        )}&limit=12`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to load books.");
+      }
+
+      const data = await response.json();
+
+      setBooks(data.docs || []);
+    } catch (err) {
+      console.error("Book search error:", err);
+      setError("We couldn't load the books. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+
+    const query = searchTerm.trim();
+
+    if (!query) {
+      fetchBooks();
+      return;
+    }
+
+    fetchBooks(query);
   };
 
   return (
     <div className="shelf-life">
-      <div className="ambient-glow ambient-glow-one" />
-      <div className="ambient-glow ambient-glow-two" />
+      {/* =========================================
+          HEADER
+      ========================================== */}
 
       <header className="topbar">
         <button
           className="brand"
-          onClick={() => handleNavigation("Discover")}
-          aria-label="Go to ShelfLife Discover"
+          onClick={() => fetchBooks()}
+          aria-label="ShelfLife home"
         >
           <span className="brand-mark">
             <span />
@@ -48,186 +70,163 @@ function App() {
           <span className="brand-name">ShelfLife</span>
         </button>
 
-        <nav className="desktop-navigation" aria-label="Primary navigation">
-          {navigation.map((item) => (
-            <button
-              key={item.label}
-              className={`nav-item ${
-                activePage === item.label ? "active" : ""
-              }`}
-              onClick={() => handleNavigation(item.label)}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              <span>{item.label}</span>
-            </button>
-          ))}
+        <nav className="desktop-navigation">
+          <button className="nav-item active">Discover</button>
+
+          <button className="nav-item">My Shelf</button>
+
+          <button className="nav-item">Reading</button>
+
+          <button className="nav-item">Statistics</button>
         </nav>
 
-        <button
-          className="account-button"
-          onClick={() => handleNavigation("Account")}
-        >
+        <button className="account-button">
           <span className="account-avatar">S</span>
-          <span className="account-label">Account</span>
-        </button>
 
-        <button
-          className={`mobile-menu-button ${mobileMenuOpen ? "open" : ""}`}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle navigation"
-          aria-expanded={mobileMenuOpen}
-        >
-          <span />
-          <span />
+          <span className="account-label">Account</span>
         </button>
       </header>
 
-      {mobileMenuOpen && (
-        <nav className="mobile-navigation" aria-label="Mobile navigation">
-          {navigation.map((item) => (
-            <button
-              key={item.label}
-              className={`mobile-nav-item ${
-                activePage === item.label ? "active" : ""
-              }`}
-              onClick={() => handleNavigation(item.label)}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
+      {/* =========================================
+          MAIN
+      ========================================== */}
 
-          <button
-            className={`mobile-nav-item ${
-              activePage === "Account" ? "active" : ""
-            }`}
-            onClick={() => handleNavigation("Account")}
-          >
-            <span>○</span>
-            Account
-          </button>
-        </nav>
-      )}
+      <main className="discover-page">
+        <section className="discover-header">
+          <div>
+            <span className="discover-kicker">DISCOVER</span>
 
-      <main className="shell-content">
-        <section className="welcome-section">
-          <div className="eyebrow">
-            <span className="eyebrow-line" />
-            YOUR READING SPACE
+            <h1>
+              Find your next
+              <span>great read.</span>
+            </h1>
+
+            <p>
+              Explore books from a world of authors, stories, and ideas. Search
+              for something specific or simply browse what's available.
+            </p>
           </div>
 
-          <h1>
-            Discover something
-            <span>worth getting lost in.</span>
-          </h1>
+          {/* =====================================
+              SEARCH
+          ====================================== */}
 
-          <p className="welcome-copy">
-            Explore books, build your shelf, and keep track of the stories that
-            stay with you.
-          </p>
-
-          <div className="search-preview">
+          <form className="book-search" onSubmit={handleSearch}>
             <span className="search-icon">⌕</span>
 
-            <span className="search-placeholder">
-              Search for a book, author, or ISBN...
-            </span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search by title, author, or ISBN..."
+              aria-label="Search books"
+            />
 
-            <span className="search-shortcut">⌘ K</span>
-          </div>
+            <button type="submit">Search</button>
+          </form>
         </section>
 
-        <section className="journey-section">
-          <div className="section-heading">
+        {/* =========================================
+            RESULTS HEADER
+        ========================================== */}
+
+        <section className="books-section">
+          <div className="books-heading">
             <div>
-              <span className="section-kicker">THE SHELFLIFE JOURNEY</span>
-              <h2>From curiosity to reflection.</h2>
+              <span className="section-kicker">BROWSE BOOKS</span>
+
+              <h2>
+                {searchTerm.trim()
+                  ? `Results for "${searchTerm.trim()}"`
+                  : "Popular discoveries"}
+              </h2>
             </div>
 
-            <span className="section-count">01 — 04</span>
+            <span className="book-count">{books.length} books</span>
           </div>
 
-          <div className="journey-grid">
-            <article className="journey-card journey-card-large">
-              <span className="journey-number">01</span>
+          {/* =========================================
+              LOADING
+          ========================================== */}
 
-              <div className="journey-visual discovery-visual">
-                <div className="floating-book book-one">
-                  <span>THE</span>
-                  <strong>DISCOVERY</strong>
-                </div>
+          {loading && (
+            <div className="books-state">
+              <div className="loader" />
+              <p>Finding books...</p>
+            </div>
+          )}
 
-                <div className="floating-book book-two">
-                  <span>NEW</span>
-                  <strong>CHAPTERS</strong>
-                </div>
-              </div>
+          {/* =========================================
+              ERROR
+          ========================================== */}
 
-              <div className="journey-content">
-                <span>DISCOVER</span>
-                <h3>Find your next story.</h3>
-                <p>
-                  Search an ever-growing world of books and discover something
-                  that catches your attention.
-                </p>
-              </div>
-            </article>
+          {!loading && error && (
+            <div className="books-state error-state">
+              <p>{error}</p>
 
-            <article className="journey-card">
-              <span className="journey-number">02</span>
+              <button onClick={() => fetchBooks()}>Try again</button>
+            </div>
+          )}
 
-              <div className="journey-symbol shelf-symbol">
-                <span />
-                <span />
-                <span />
-              </div>
+          {/* =========================================
+              BOOK GRID
+          ========================================== */}
 
-              <div className="journey-content">
-                <span>SAVE</span>
-                <h3>Build a shelf that feels like yours.</h3>
-                <p>Keep the books you want to read close at hand.</p>
-              </div>
-            </article>
+          {!loading && !error && (
+            <div className="book-grid">
+              {books.map((book, index) => {
+                const coverId = book.cover_i;
 
-            <article className="journey-card">
-              <span className="journey-number">03</span>
+                const coverUrl = coverId
+                  ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`
+                  : null;
 
-              <div className="journey-symbol progress-symbol">
-                <div>
-                  <span />
-                </div>
-                <strong>68%</strong>
-              </div>
+                return (
+                  <article className="book-card" key={`${book.key}-${index}`}>
+                    <div className="book-cover">
+                      {coverUrl ? (
+                        <img
+                          src={coverUrl}
+                          alt={`Cover of ${book.title}`}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="no-cover">
+                          <span>ShelfLife</span>
 
-              <div className="journey-content">
-                <span>READ</span>
-                <h3>Make progress, one page at a time.</h3>
-                <p>Track where you are without turning reading into a chore.</p>
-              </div>
-            </article>
+                          <strong>No Cover</strong>
+                        </div>
+                      )}
+                    </div>
 
-            <article className="journey-card">
-              <span className="journey-number">04</span>
+                    <div className="book-information">
+                      <h3>{book.title || "Untitled"}</h3>
 
-              <div className="journey-symbol reflection-symbol">
-                <span>★★★★★</span>
-              </div>
+                      <p className="book-author">
+                        {book.author_name?.[0] || "Unknown author"}
+                      </p>
 
-              <div className="journey-content">
-                <span>REFLECT</span>
-                <h3>Remember what mattered.</h3>
-                <p>
-                  Rate books, write personal notes, and look back on your
-                  reading journey.
-                </p>
-              </div>
-            </article>
-          </div>
+                      {book.first_publish_year && (
+                        <span className="book-year">
+                          {book.first_publish_year}
+                        </span>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
 
+      {/* =========================================
+          FOOTER
+      ========================================== */}
+
       <footer className="shell-footer">
         <span>© 2026 ShelfLife</span>
+
         <span>A personal space for better reading.</span>
       </footer>
     </div>
