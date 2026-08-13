@@ -21,9 +21,7 @@ function App() {
       setError("");
 
       const response = await fetch(
-        `https://openlibrary.org/search.json?q=${encodeURIComponent(
-          query,
-        )}&limit=12`,
+        `http://localhost:5000/api/books/search?q=${encodeURIComponent(query)}`,
       );
 
       if (!response.ok) {
@@ -32,7 +30,7 @@ function App() {
 
       const data = await response.json();
 
-      setBooks(data.docs || []);
+      setBooks(data.books || []);
     } catch (err) {
       console.error("Book search error:", err);
       setError("We couldn't load the books. Please try again.");
@@ -358,47 +356,34 @@ function App() {
 
           {!loading && !error && (
             <div className="book-grid">
-              {books.map((book, index) => {
-                const coverId = book.cover_i;
+              {books.map((book, index) => (
+                <article className="book-card" key={`${book.id}-${index}`}>
+                  <div className="book-cover">
+                    {book.coverUrl ? (
+                      <img
+                        src={book.coverUrl}
+                        alt={`Cover of ${book.title}`}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="no-cover">
+                        <span>ShelfLife</span>
+                        <strong>No Cover</strong>
+                      </div>
+                    )}
+                  </div>
 
-                const coverUrl = coverId
-                  ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`
-                  : null;
+                  <div className="book-information">
+                    <h3>{book.title}</h3>
 
-                return (
-                  <article className="book-card" key={`${book.key}-${index}`}>
-                    <div className="book-cover">
-                      {coverUrl ? (
-                        <img
-                          src={coverUrl}
-                          alt={`Cover of ${book.title}`}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="no-cover">
-                          <span>ShelfLife</span>
+                    <p className="book-author">{book.author}</p>
 
-                          <strong>No Cover</strong>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="book-information">
-                      <h3>{book.title || "Untitled"}</h3>
-
-                      <p className="book-author">
-                        {book.author_name?.[0] || "Unknown author"}
-                      </p>
-
-                      {book.first_publish_year && (
-                        <span className="book-year">
-                          {book.first_publish_year}
-                        </span>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
+                    {book.year && (
+                      <span className="book-year">{book.year}</span>
+                    )}
+                  </div>
+                </article>
+              ))}
             </div>
           )}
         </section>

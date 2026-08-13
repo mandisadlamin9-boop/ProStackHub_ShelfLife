@@ -26,7 +26,60 @@ app.get("/", (req, res) => {
     message: "ShelfLife API is running",
   });
 });
+/* =========================================================
+   BOOK SEARCH (Google Books API)
+========================================================= */
 
+app.get("/api/books/search", async (req, res) => {
+  try {
+    const query = (req.query.q || "fiction").trim();
+
+    const googleUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+      query,
+    )}&maxResults=12&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
+    const response = await fetch(googleUrl);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("Google Books API failed:", response.status, errorBody);
+      throw new Error(
+        `Google Books API request failed (status ${response.status}): ${errorBody}`,
+      );
+    }
+
+    const data = await response.json();
+
+    const books = (data.items || []).map((item) => {
+      const info = item.volumeInfo || {};
+
+      const isbn =
+        info.industryIdentifiers?.find((id) => id.type === "ISBN_13")
+          ?.identifier ||
+        info.industryIdentifiers?.[0]?.identifier ||
+        null;
+
+      return {
+        id: item.id,
+        title: info.title || "Untitled",
+        author: info.authors?.[0] || "Unknown author",
+        coverUrl: info.imageLinks?.thumbnail
+          ? info.imageLinks.thumbnail.replace("http://", "https://")
+          : null,
+        year: info.publishedDate ? info.publishedDate.slice(0, 4) : null,
+        isbn,
+      };
+    });
+
+    return res.status(200).json({ books });
+  } catch (error) {
+    console.error("Book search error:", error);
+
+    return res.status(500).json({
+      message: "Unable to search for books.",
+      error: error.message,
+    });
+  }
+});
 /* =========================================================
    REGISTER
 ========================================================= */
