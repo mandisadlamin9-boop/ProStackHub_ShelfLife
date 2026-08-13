@@ -4,6 +4,7 @@ import Discover from "./pages/Discover";
 import Login from "./pages/Login";
 import MyShelf from "./pages/MyShelf";
 import BookDetail from "./pages/BookDetail";
+import Reading from "./pages/Reading";
 import "./App.css";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/my-shelf" element={<MyShelf />} />
           <Route path="/shelf/:shelfItemId" element={<BookDetail />} />
+          <Route path="/reading" element={<Reading />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
