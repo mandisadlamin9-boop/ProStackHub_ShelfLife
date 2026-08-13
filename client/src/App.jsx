@@ -7,6 +7,14 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
   const fetchBooks = async (query = "fiction") => {
     try {
       setLoading(true);
@@ -35,6 +43,20 @@ function App() {
 
   useEffect(() => {
     fetchBooks();
+
+    const savedToken = localStorage.getItem("shelflifeToken");
+    const savedUser = localStorage.getItem("shelflifeUser");
+
+    if (savedToken && savedUser) {
+      try {
+        setCurrentUser(JSON.parse(savedUser));
+        setIsLoggedIn(true);
+      } catch (err) {
+        console.error("Unable to restore login session:", err);
+        localStorage.removeItem("shelflifeToken");
+        localStorage.removeItem("shelflifeUser");
+      }
+    }
   }, []);
 
   const handleSearch = (event) => {
@@ -49,6 +71,144 @@ function App() {
 
     fetchBooks(query);
   };
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+
+    setLoginError("");
+
+    if (!loginEmail.trim() || !loginPassword) {
+      setLoginError("Please enter your email and password.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: loginEmail.trim(),
+          password: loginPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setLoginError(data.message || "Unable to log in.");
+        return;
+      }
+
+      localStorage.setItem("shelflifeToken", data.token);
+      localStorage.setItem("shelflifeUser", JSON.stringify(data.account));
+
+      setCurrentUser(data.account);
+      setIsLoggedIn(true);
+      setShowLogin(false);
+
+      setLoginEmail("");
+      setLoginPassword("");
+      setLoginError("");
+
+      fetchBooks();
+    } catch (err) {
+      console.error("Login error:", err);
+      setLoginError(
+        "Unable to connect to ShelfLife. Please make sure the server is running.",
+      );
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("shelflifeToken");
+    localStorage.removeItem("shelflifeUser");
+
+    setCurrentUser(null);
+    setIsLoggedIn(false);
+    setShowLogin(false);
+  };
+
+  const getUserInitial = () => {
+    if (!currentUser?.FullName) {
+      return "S";
+    }
+
+    return currentUser.FullName.charAt(0).toUpperCase();
+  };
+
+  if (showLogin) {
+    return (
+      <div className="shelf-life">
+        <main className="login-page">
+          <section className="login-card">
+            <button
+              className="login-back"
+              onClick={() => {
+                setShowLogin(false);
+                setLoginError("");
+              }}
+            >
+              ← Back to Discover
+            </button>
+
+            <div className="login-brand">
+              <span className="brand-mark">
+                <span />
+                <span />
+              </span>
+
+              <span className="brand-name">ShelfLife</span>
+            </div>
+
+            <span className="discover-kicker">WELCOME BACK</span>
+
+            <h1>Sign in to your shelf.</h1>
+
+            <p className="login-description">
+              Continue discovering books and keeping track of your reading
+              journey.
+            </p>
+
+            <form className="login-form" onSubmit={handleLogin}>
+              <label htmlFor="login-email">Email</label>
+
+              <input
+                id="login-email"
+                type="email"
+                value={loginEmail}
+                onChange={(event) => setLoginEmail(event.target.value)}
+                placeholder="Enter your email"
+                autoComplete="email"
+              />
+
+              <label htmlFor="login-password">Password</label>
+
+              <input
+                id="login-password"
+                type="password"
+                value={loginPassword}
+                onChange={(event) => setLoginPassword(event.target.value)}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+              />
+
+              {loginError && (
+                <p className="login-error" role="alert">
+                  {loginError}
+                </p>
+              )}
+
+              <button className="login-submit" type="submit">
+                Sign in
+              </button>
+            </form>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="shelf-life">
@@ -80,11 +240,25 @@ function App() {
           <button className="nav-item">Statistics</button>
         </nav>
 
-        <button className="account-button">
-          <span className="account-avatar">S</span>
+        {isLoggedIn && currentUser ? (
+          <div className="account-area">
+            <button className="account-button">
+              <span className="account-avatar">{getUserInitial()}</span>
 
-          <span className="account-label">Account</span>
-        </button>
+              <span className="account-label">{currentUser.FullName}</span>
+            </button>
+
+            <button className="logout-button" onClick={handleLogout}>
+              Log out
+            </button>
+          </div>
+        ) : (
+          <button className="account-button" onClick={() => setShowLogin(true)}>
+            <span className="account-avatar">S</span>
+
+            <span className="account-label">Sign in</span>
+          </button>
+        )}
       </header>
 
       {/* =========================================
@@ -97,8 +271,18 @@ function App() {
             <span className="discover-kicker">DISCOVER</span>
 
             <h1>
-              Find your next
-              <span>great read.</span>
+              {isLoggedIn && currentUser ? (
+                <>
+                  Hello, <span>{currentUser.FullName.split(" ")[0]}.</span>
+                  <br />
+                  Ready for your next read?
+                </>
+              ) : (
+                <>
+                  Find your next
+                  <span>great read.</span>
+                </>
+              )}
             </h1>
 
             <p>

@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -9,6 +10,12 @@ const app = express();
 const PORT = 5000;
 
 app.use(express.json());
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  }),
+);
 
 /* =========================================================
    HEALTH CHECK
@@ -124,10 +131,11 @@ app.post("/api/auth/register", async (req, res) => {
       account,
     });
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("Login error:", error);
 
     return res.status(500).json({
-      message: "Unable to create the ShelfLife account.",
+      message: "Unable to log in to the ShelfLife account.",
+      error: error.message,
     });
   }
 });
@@ -243,6 +251,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     return res.status(500).json({
       message: "Unable to log in to the ShelfLife account.",
+      error: error.message,
     });
   }
 });

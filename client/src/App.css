@@ -789,3 +789,227 @@ button {
     gap: 7px;
   }
 }
+
+/* =========================================================
+   ACCOUNT AREA
+========================================================= */
+
+.account-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout-button {
+  border: 0;
+  background: transparent;
+
+  color: var(--charcoal-soft);
+
+  font-size: 11px;
+
+  padding: 8px 4px;
+}
+
+.logout-button:hover {
+  color: var(--burgundy);
+}
+
+/* =========================================================
+   LOGIN PAGE
+========================================================= */
+
+.login-page {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 20px;
+}
+
+.login-card {
+  width: min(460px, 100%);
+
+  background: var(--white);
+
+  border: 1px solid var(--border);
+
+  padding: 46px;
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06);
+}
+
+.login-back {
+  border: 0;
+  background: transparent;
+
+  padding: 0;
+
+  color: var(--charcoal-soft);
+
+  font-size: 12px;
+}
+
+.login-back:hover {
+  color: var(--burgundy);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  margin: 42px 0 55px;
+}
+
+.login-card h1 {
+  margin: 12px 0 0;
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: 48px;
+
+  font-weight: 400;
+
+  line-height: 1;
+
+  letter-spacing: -2px;
+}
+
+.login-description {
+  margin: 20px 0 32px;
+
+  color: var(--charcoal-soft);
+
+  font-size: 14px;
+
+  line-height: 1.7;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form label {
+  margin-bottom: 8px;
+
+  color: var(--charcoal);
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.5px;
+}
+
+.login-form input {
+  width: 100%;
+  height: 48px;
+
+  margin-bottom: 20px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 5px;
+
+  outline: none;
+
+  background: var(--paper);
+
+  color: var(--charcoal);
+
+  font-size: 13px;
+}
+
+.login-form input:focus {
+  border-color: var(--burgundy);
+
+  box-shadow: 0 0 0 3px rgba(114, 47, 63, 0.08);
+}
+
+.login-form input::placeholder {
+  color: var(--muted);
+}
+
+.login-submit {
+  width: 100%;
+  height: 48px;
+
+  margin-top: 5px;
+
+  border: 0;
+
+  border-radius: 5px;
+
+  background: var(--charcoal);
+
+  color: var(--white);
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.login-submit:hover {
+  background: var(--burgundy);
+
+  transform: translateY(-1px);
+}
+
+.login-error {
+  margin: -4px 0 16px;
+
+  color: var(--burgundy);
+
+  font-size: 12px;
+
+  line-height: 1.5;
+}
+
+.login-success {
+  margin: -4px 0 16px;
+
+  color: #3f6848;
+
+  font-size: 12px;
+}
+
+/* =========================================================
+   LOGIN MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .login-page {
+    padding: 24px 16px;
+  }
+
+  .login-card {
+    padding: 32px 24px;
+  }
+
+  .login-brand {
+    margin: 35px 0 42px;
+  }
+
+  .login-card h1 {
+    font-size: 40px;
+  }
+
+  .account-area {
+    gap: 5px;
+  }
+
+  .account-area .logout-button {
+    display: none;
+  }
+}
