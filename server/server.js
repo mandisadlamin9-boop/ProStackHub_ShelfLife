@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { requireAuth } = require("./middleware/auth");
+
 require("dotenv").config();
 
 const { sql, databaseConnection } = require("./config/database");
@@ -67,6 +69,7 @@ app.get("/api/books/search", async (req, res) => {
           : null,
         year: info.publishedDate ? info.publishedDate.slice(0, 4) : null,
         isbn,
+        totalPages: info.pageCount || null,
       };
     });
 
@@ -308,7 +311,324 @@ app.post("/api/auth/login", async (req, res) => {
     });
   }
 });
+/* =========================================================
+   ADD BOOK TO SHELF
+========================================================= */
 
+app.post("/api/shelf", requireAuth, async (req, res) => {
+  try {
+    const { googleBooksId, title, author, coverUrl, isbn, status, totalPages } =
+      req.body;
+
+    if (!googleBooksId || !title) {
+      return res.status(400).json({
+        message: "Book ID and title are required.",
+      });
+    }
+
+    const validStatuses = ["want_to_read", "currently_reading", "read"];
+    const shelfStatus = validStatuses.includes(status)
+      ? status
+      : "want_to_read";
+
+    const pool = await databaseConnection;
+
+    const result = await pool
+      .request()
+      .input("AccountId", sql.Int, req.account.accountId)
+      .input("GoogleBooksId", sql.NVarChar(50), googleBooksId)
+      .input("Title", sql.NVarChar(500), title)
+      .input("Author", sql.NVarChar(255), author || null)
+      .input("CoverUrl", sql.NVarChar(1000), coverUrl || null)
+      .input("Isbn", sql.NVarChar(20), isbn || null)
+      .input("Status", sql.NVarChar(20), shelfStatus)
+      .input("TotalPages", sql.Int, totalPages || null).query(`
+        INSERT INTO ShelfItems
+        (
+          AccountId,
+          GoogleBooksId,
+          Title,
+          Author,
+          CoverUrl,
+          Isbn,
+          Status,
+          TotalPages
+        )
+        OUTPUT
+          INSERTED.*
+        VALUES
+        (
+          @AccountId,
+          @GoogleBooksId,
+          @Title,
+          @Author,
+          @CoverUrl,
+          @Isbn,
+          @Status,
+          @TotalPages
+        )
+      `);
+
+    return res.status(201).json({
+      message: "Book added to your shelf.",
+      shelfItem: result.recordset[0],
+    });
+  } catch (error) {
+    console.error("Add to shelf error:", error);
+
+    return res.status(500).json({
+      message: "Unable to add book to shelf.",
+      error: error.message,
+    });
+  }
+});
+
+/* =========================================================
+   GET MY SHELF
+========================================================= */
+
+app.get("/api/shelf", requireAuth, async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    const pool = await databaseConnection;
+
+    const request = pool
+      .request()
+      .input("AccountId", sql.Int, req.account.accountId);
+
+    let query = `
+      SELECT *
+      FROM ShelfItems
+      WHERE AccountId = @AccountId
+    `;
+
+    const validStatuses = ["want_to_read", "currently_reading", "read"];
+
+    if (status && validStatuses.includes(status)) {
+      request.input("Status", sql.NVarChar(20), status);
+      query += ` AND Status = @Status`;
+    }
+
+    query += ` ORDER BY DateAdded DESC`;
+
+    const result = await request.query(query);
+
+    return res.status(200).json({
+      shelfItems: result.recordset,
+    });
+  } catch (error) {
+    console.error("Get shelf error:", error);
+
+    return res.status(500).json({
+      message: "Unable to load your shelf.",
+      error: error.message,
+    });
+  }
+});
+/* =========================================================
+   GET SINGLE SHELF ITEM
+========================================================= */
+
+app.get("/api/shelf/:id", requireAuth, async (req, res) => {
+  try {
+    const shelfItemId = parseInt(req.params.id, 10);
+
+    if (Number.isNaN(shelfItemId)) {
+      return res.status(400).json({
+        message: "Invalid shelf item ID.",
+      });
+    }
+
+    const pool = await databaseConnection;
+
+    const result = await pool
+      .request()
+      .input("ShelfItemId", sql.Int, shelfItemId)
+      .input("AccountId", sql.Int, req.account.accountId).query(`
+        SELECT *
+        FROM ShelfItems
+        WHERE ShelfItemId = @ShelfItemId AND AccountId = @AccountId
+      `);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({
+        message: "Shelf item not found.",
+      });
+    }
+
+    return res.status(200).json({
+      shelfItem: result.recordset[0],
+    });
+  } catch (error) {
+    console.error("Get shelf item error:", error);
+
+    return res.status(500).json({
+      message: "Unable to load shelf item.",
+      error: error.message,
+    });
+  }
+});
+/* =========================================================
+   UPDATE SHELF ITEM (status, progress, rating, review)
+========================================================= */
+
+app.patch("/api/shelf/:id", requireAuth, async (req, res) => {
+  try {
+    const shelfItemId = parseInt(req.params.id, 10);
+
+    if (Number.isNaN(shelfItemId)) {
+      return res.status(400).json({
+        message: "Invalid shelf item ID.",
+      });
+    }
+
+    const { status, currentPage, rating, review } = req.body;
+
+    const pool = await databaseConnection;
+
+    /* -----------------------------------------------------
+       CONFIRM OWNERSHIP FIRST
+    ----------------------------------------------------- */
+
+    const ownerCheck = await pool
+      .request()
+      .input("ShelfItemId", sql.Int, shelfItemId)
+      .input("AccountId", sql.Int, req.account.accountId).query(`
+        SELECT ShelfItemId
+        FROM ShelfItems
+        WHERE ShelfItemId = @ShelfItemId AND AccountId = @AccountId
+      `);
+
+    if (ownerCheck.recordset.length === 0) {
+      return res.status(404).json({
+        message: "Shelf item not found.",
+      });
+    }
+
+    /* -----------------------------------------------------
+       BUILD DYNAMIC UPDATE
+    ----------------------------------------------------- */
+
+    const request = pool
+      .request()
+      .input("ShelfItemId", sql.Int, shelfItemId)
+      .input("AccountId", sql.Int, req.account.accountId);
+
+    const updates = [];
+
+    const validStatuses = ["want_to_read", "currently_reading", "read"];
+
+    if (status !== undefined) {
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          message: "Invalid status value.",
+        });
+      }
+
+      request.input("Status", sql.NVarChar(20), status);
+      updates.push("Status = @Status");
+
+      if (status === "currently_reading") {
+        updates.push("DateStarted = COALESCE(DateStarted, GETDATE())");
+      }
+
+      if (status === "read") {
+        updates.push("DateCompleted = GETDATE()");
+      }
+    }
+
+    if (currentPage !== undefined) {
+      request.input("CurrentPage", sql.Int, currentPage);
+      updates.push("CurrentPage = @CurrentPage");
+    }
+
+    if (rating !== undefined) {
+      if (rating !== null && (rating < 1 || rating > 5)) {
+        return res.status(400).json({
+          message: "Rating must be between 1 and 5.",
+        });
+      }
+
+      request.input("Rating", sql.Int, rating);
+      updates.push("Rating = @Rating");
+    }
+
+    if (review !== undefined) {
+      request.input("Review", sql.NVarChar(sql.MAX), review);
+      updates.push("Review = @Review");
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({
+        message: "No valid fields provided to update.",
+      });
+    }
+
+    const result = await request.query(`
+      UPDATE ShelfItems
+      SET ${updates.join(", ")}
+      OUTPUT INSERTED.*
+      WHERE ShelfItemId = @ShelfItemId AND AccountId = @AccountId
+    `);
+
+    return res.status(200).json({
+      message: "Shelf item updated.",
+      shelfItem: result.recordset[0],
+    });
+  } catch (error) {
+    console.error("Update shelf item error:", error);
+
+    return res.status(500).json({
+      message: "Unable to update shelf item.",
+      error: error.message,
+    });
+  }
+});
+
+/* =========================================================
+   REMOVE FROM SHELF
+========================================================= */
+
+app.delete("/api/shelf/:id", requireAuth, async (req, res) => {
+  try {
+    const shelfItemId = parseInt(req.params.id, 10);
+
+    if (Number.isNaN(shelfItemId)) {
+      return res.status(400).json({
+        message: "Invalid shelf item ID.",
+      });
+    }
+
+    const pool = await databaseConnection;
+
+    const result = await pool
+      .request()
+      .input("ShelfItemId", sql.Int, shelfItemId)
+      .input("AccountId", sql.Int, req.account.accountId).query(`
+        DELETE FROM ShelfItems
+        OUTPUT DELETED.ShelfItemId
+        WHERE ShelfItemId = @ShelfItemId AND AccountId = @AccountId
+      `);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({
+        message: "Shelf item not found.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Book removed from shelf.",
+    });
+  } catch (error) {
+    console.error("Remove from shelf error:", error);
+
+    return res.status(500).json({
+      message: "Unable to remove book from shelf.",
+      error: error.message,
+    });
+  }
+});
 /* =========================================================
    START SERVER
 ========================================================= */
