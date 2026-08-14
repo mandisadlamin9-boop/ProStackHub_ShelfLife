@@ -32,16 +32,51 @@ app.get("/", (req, res) => {
    BOOK SEARCH (Google Books API)
 ========================================================= */
 
+const DEFAULT_SEARCH_TERMS = [
+  "Colleen Hoover",
+  "Fourth Wing Rebecca Yarros",
+  "Sarah J Maas",
+  "Freida McFadden",
+  "Taylor Jenkins Reid",
+  "Where the Crawdads Sing",
+  "The Seven Husbands of Evelyn Hugo",
+  "Atomic Habits",
+];
+
 app.get("/api/books/search", async (req, res) => {
   try {
-    const query = (req.query.q || "fiction").trim();
+    const hasCustomQuery = Boolean(req.query.q?.trim());
+
+    const query = hasCustomQuery
+      ? req.query.q.trim()
+      : DEFAULT_SEARCH_TERMS[
+          Math.floor(Math.random() * DEFAULT_SEARCH_TERMS.length)
+        ];
 
     const googleUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
       query,
-    )}&maxResults=12&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
-    const response = await fetch(googleUrl);
+    )}&maxResults=20&printType=books&orderBy=relevance&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
 
-    if (!response.ok) {
+    let response;
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      attempts += 1;
+      response = await fetch(googleUrl);
+
+      if (response.ok) {
+        break;
+      }
+
+      if (response.status === 503 && attempts < maxAttempts) {
+        console.warn(
+          `Google Books API 503, retrying (${attempts}/${maxAttempts})...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 500 * attempts));
+        continue;
+      }
+
       const errorBody = await response.text();
       console.error("Google Books API failed:", response.status, errorBody);
       throw new Error(
@@ -51,27 +86,34 @@ app.get("/api/books/search", async (req, res) => {
 
     const data = await response.json();
 
-    const books = (data.items || []).map((item) => {
-      const info = item.volumeInfo || {};
+    const junkPatterns =
+      /\b(proceedings|catalogue|catalog|bulletin|subject-index|subject index|annual report|transactions|yearbook|bibliography|guide to writing|handbook|recommendation culture)\b/i;
 
-      const isbn =
-        info.industryIdentifiers?.find((id) => id.type === "ISBN_13")
-          ?.identifier ||
-        info.industryIdentifiers?.[0]?.identifier ||
-        null;
+    const books = (data.items || [])
+      .map((item) => {
+        const info = item.volumeInfo || {};
 
-      return {
-        id: item.id,
-        title: info.title || "Untitled",
-        author: info.authors?.[0] || "Unknown author",
-        coverUrl: info.imageLinks?.thumbnail
-          ? info.imageLinks.thumbnail.replace("http://", "https://")
-          : null,
-        year: info.publishedDate ? info.publishedDate.slice(0, 4) : null,
-        isbn,
-        totalPages: info.pageCount || null,
-      };
-    });
+        const isbn =
+          info.industryIdentifiers?.find((id) => id.type === "ISBN_13")
+            ?.identifier ||
+          info.industryIdentifiers?.[0]?.identifier ||
+          null;
+
+        return {
+          id: item.id,
+          title: info.title || "Untitled",
+          author: info.authors?.[0] || "Unknown author",
+          coverUrl: info.imageLinks?.thumbnail
+            ? info.imageLinks.thumbnail.replace("http://", "https://")
+            : null,
+          year: info.publishedDate ? info.publishedDate.slice(0, 4) : null,
+          isbn,
+          totalPages: info.pageCount || null,
+        };
+      })
+      .filter((book) => book.coverUrl !== null)
+      .filter((book) => !junkPatterns.test(book.title))
+      .slice(0, 12);
 
     return res.status(200).json({ books });
   } catch (error) {
@@ -426,6 +468,57 @@ app.get("/api/shelf", requireAuth, async (req, res) => {
     });
   }
 });
+
+/* =========================================================
+   SHELF STATISTICS
+========================================================= */
+
+app.get("/api/shelf/stats", requireAuth, async (req, res) => {
+  try {
+    const pool = await databaseConnection;
+
+    const result = await pool
+      .request()
+      .input("AccountId", sql.Int, req.account.accountId).query(`
+        SELECT
+          COUNT(*) AS TotalBooks,
+          SUM(CASE WHEN Status = 'want_to_read' THEN 1 ELSE 0 END) AS WantToReadCount,
+          SUM(CASE WHEN Status = 'currently_reading' THEN 1 ELSE 0 END) AS CurrentlyReadingCount,
+          SUM(CASE WHEN Status = 'read' THEN 1 ELSE 0 END) AS ReadCount,
+          AVG(CASE WHEN Rating IS NOT NULL THEN CAST(Rating AS FLOAT) END) AS AverageRating,
+          COUNT(CASE WHEN Rating IS NOT NULL THEN 1 END) AS RatedCount,
+          SUM(CASE WHEN Status = 'read' THEN TotalPages ELSE 0 END) AS TotalPagesRead,
+          SUM(CASE WHEN Status = 'currently_reading' THEN CurrentPage ELSE 0 END) AS PagesInProgress
+        FROM ShelfItems
+        WHERE AccountId = @AccountId
+      `);
+
+    const stats = result.recordset[0];
+
+    return res.status(200).json({
+      stats: {
+        totalBooks: stats.TotalBooks || 0,
+        wantToReadCount: stats.WantToReadCount || 0,
+        currentlyReadingCount: stats.CurrentlyReadingCount || 0,
+        readCount: stats.ReadCount || 0,
+        averageRating: stats.AverageRating
+          ? Math.round(stats.AverageRating * 10) / 10
+          : null,
+        ratedCount: stats.RatedCount || 0,
+        totalPagesRead: stats.TotalPagesRead || 0,
+        pagesInProgress: stats.PagesInProgress || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Get shelf stats error:", error);
+
+    return res.status(500).json({
+      message: "Unable to load reading statistics.",
+      error: error.message,
+    });
+  }
+});
+
 /* =========================================================
    GET SINGLE SHELF ITEM
 ========================================================= */

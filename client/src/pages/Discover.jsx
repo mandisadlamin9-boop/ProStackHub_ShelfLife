@@ -13,7 +13,7 @@ function Discover() {
   const { isLoggedIn, currentUser, shelfBookIds, addToShelfIds } = useAuth();
   const navigate = useNavigate();
 
-  const fetchBooks = async (query = "fiction") => {
+  const fetchBooks = async (query = "") => {
     try {
       setLoading(true);
       setError("");
