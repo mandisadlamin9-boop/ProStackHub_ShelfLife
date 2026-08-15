@@ -139,85 +139,137 @@ function Discover() {
           </form>
         </section>
 
-        <section className="books-section">
-          <div className="books-heading">
-            <div>
-              <span className="section-kicker">BROWSE BOOKS</span>
-
-              <h2>
-                {searchTerm.trim()
-                  ? `Results for "${searchTerm.trim()}"`
-                  : "Popular discoveries"}
-              </h2>
-            </div>
-
-            <span className="book-count">{books.length} books</span>
+        {loading && (
+          <div className="books-state">
+            <div className="loader" />
+            <p>Finding books...</p>
           </div>
+        )}
 
-          {loading && (
-            <div className="books-state">
-              <div className="loader" />
-              <p>Finding books...</p>
-            </div>
-          )}
+        {!loading && error && (
+          <div className="books-state error-state">
+            <p>{error}</p>
 
-          {!loading && error && (
-            <div className="books-state error-state">
-              <p>{error}</p>
+            <button onClick={() => fetchBooks()}>Try again</button>
+          </div>
+        )}
 
-              <button onClick={() => fetchBooks()}>Try again</button>
-            </div>
-          )}
-
-          {!loading && !error && (
-            <div className="book-grid">
-              {books.map((book, index) => (
-                <article className="book-card" key={`${book.id}-${index}`}>
-                  <div className="book-cover">
-                    {book.coverUrl ? (
-                      <img
-                        src={book.coverUrl}
-                        alt={`Cover of ${book.title}`}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="no-cover">
-                        <span>ShelfLife</span>
-                        <strong>No Cover</strong>
-                      </div>
-                    )}
+        {!loading && !error && books.length > 0 && (
+          <>
+            <section className="featured-book">
+              <div className="featured-cover">
+                {books[0].coverUrl ? (
+                  <img
+                    src={books[0].coverUrl}
+                    alt={`Cover of ${books[0].title}`}
+                  />
+                ) : (
+                  <div className="no-cover">
+                    <span>ShelfLife</span>
+                    <strong>No Cover</strong>
                   </div>
+                )}
+              </div>
 
-                  <div className="book-information">
-                    <h3>{book.title}</h3>
+              <div className="featured-information">
+                <span className="section-kicker">
+                  {searchTerm.trim() ? "Top result" : "Featured today"}
+                </span>
 
-                    <p className="book-author">{book.author}</p>
+                <h1>{books[0].title}</h1>
 
-                    {book.year && (
-                      <span className="book-year">{book.year}</span>
-                    )}
+                <p className="book-author">{books[0].author}</p>
 
-                    {shelfBookIds.has(book.id) ? (
-                      <button className="shelf-button added" disabled>
-                        On Your Shelf
-                      </button>
-                    ) : (
-                      <button
-                        className="shelf-button"
-                        onClick={() => handleAddToShelf(book)}
-                        disabled={addingBookId === book.id}
-                      >
-                        {addingBookId === book.id
-                          ? "Adding..."
-                          : "Add to Shelf"}
-                      </button>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+                {books[0].description && (
+                  <p className="featured-description">
+                    {books[0].description.length > 280
+                      ? `${books[0].description.slice(0, 280).trim()}…`
+                      : books[0].description}
+                  </p>
+                )}
+
+                {shelfBookIds.has(books[0].id) ? (
+                  <button className="shelf-button added" disabled>
+                    On Your Shelf
+                  </button>
+                ) : (
+                  <button
+                    className="shelf-button"
+                    onClick={() => handleAddToShelf(books[0])}
+                    disabled={addingBookId === books[0].id}
+                  >
+                    {addingBookId === books[0].id
+                      ? "Adding..."
+                      : "Add to Shelf"}
+                  </button>
+                )}
+              </div>
+            </section>
+
+            <section className="books-section">
+              <div className="books-heading">
+                <div>
+                  <span className="section-kicker">BROWSE BOOKS</span>
+
+                  <h2>
+                    {searchTerm.trim()
+                      ? `More results for "${searchTerm.trim()}"`
+                      : "More discoveries"}
+                  </h2>
+                </div>
+
+                <span className="book-count">{books.length} books</span>
+              </div>
+
+              <div className="book-grid">
+                {books.slice(1).map((book, index) => (
+                  <article className="book-card" key={`${book.id}-${index}`}>
+                    <div className="book-cover">
+                      {book.coverUrl ? (
+                        <img
+                          src={book.coverUrl}
+                          alt={`Cover of ${book.title}`}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="no-cover">
+                          <span>ShelfLife</span>
+                          <strong>No Cover</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="book-information">
+                      <h3>{book.title}</h3>
+
+                      <p className="book-author">{book.author}</p>
+
+                      {book.year && (
+                        <span className="book-year">{book.year}</span>
+                      )}
+
+                      {shelfBookIds.has(book.id) ? (
+                        <button className="shelf-button added" disabled>
+                          On Your Shelf
+                        </button>
+                      ) : (
+                        <button
+                          className="shelf-button"
+                          onClick={() => handleAddToShelf(book)}
+                          disabled={addingBookId === book.id}
+                        >
+                          {addingBookId === book.id
+                            ? "Adding..."
+                            : "Add to Shelf"}
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
       </main>
 
       <footer className="shell-footer">

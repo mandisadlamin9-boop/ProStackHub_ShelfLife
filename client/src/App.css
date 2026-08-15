@@ -1013,3 +1013,511 @@ button {
     display: none;
   }
 }
+/* =========================================================
+   SHELF BUTTON
+========================================================= */
+
+.shelf-button {
+  margin-top: 12px;
+
+  border: 1px solid var(--charcoal);
+  background: transparent;
+
+  padding: 8px 16px;
+
+  border-radius: 3px;
+
+  color: var(--charcoal);
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.shelf-button:hover:not(:disabled) {
+  background: var(--charcoal);
+  color: var(--white);
+}
+
+.shelf-button.added {
+  border-color: var(--burgundy);
+  color: var(--burgundy);
+
+  cursor: default;
+}
+
+.shelf-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* =========================================================
+   FEATURED BOOK
+========================================================= */
+
+.featured-book {
+  display: grid;
+
+  grid-template-columns: 280px 1fr;
+
+  gap: 56px;
+
+  padding: 48px 0 64px;
+
+  border-top: 1px solid var(--border);
+}
+
+.featured-cover {
+  width: 100%;
+
+  aspect-ratio: 2 / 3;
+
+  overflow: hidden;
+
+  background: #e9e6e0;
+
+  border-radius: 3px;
+
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.featured-cover img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+.featured-information {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.featured-information .section-kicker {
+  margin-bottom: 14px;
+}
+
+.featured-information h1 {
+  margin: 0 0 10px;
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: clamp(30px, 3.5vw, 44px);
+
+  font-weight: 400;
+
+  line-height: 1.05;
+
+  letter-spacing: -1.2px;
+}
+
+.featured-information .book-author {
+  font-size: 14px;
+
+  margin-bottom: 4px;
+}
+
+.featured-information .shelf-button {
+  margin-top: 18px;
+
+  align-self: flex-start;
+
+  padding: 11px 24px;
+
+  font-size: 12px;
+}
+.featured-description {
+  margin: 16px 0 0;
+
+  max-width: 520px;
+
+  color: var(--charcoal-soft);
+
+  font-size: 14px;
+
+  line-height: 1.75;
+}
+/* =========================================================
+   FEATURED BOOK — TABLET / MOBILE
+========================================================= */
+
+@media (max-width: 850px) {
+  .featured-book {
+    grid-template-columns: 200px 1fr;
+
+    gap: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .featured-book {
+    grid-template-columns: 1fr;
+
+    padding: 32px 0 40px;
+  }
+
+  .featured-cover {
+    max-width: 200px;
+  }
+}
+/* =========================================================
+   BOOK DETAIL
+========================================================= */
+
+.book-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 8px 0 80px;
+}
+
+.book-detail-cover {
+  width: 220px;
+
+  aspect-ratio: 2 / 3;
+
+  overflow: hidden;
+
+  background: #e9e6e0;
+
+  border-radius: 3px;
+
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.14);
+
+  margin-bottom: 36px;
+}
+
+.book-detail-cover img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+.book-detail-information {
+  width: min(640px, 100%);
+
+  text-align: center;
+}
+
+.book-detail-information h1 {
+  margin: 0;
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: clamp(32px, 4vw, 46px);
+
+  font-weight: 400;
+
+  line-height: 1.05;
+
+  letter-spacing: -1.2px;
+}
+
+.book-detail-information .book-author {
+  margin: 12px 0 0;
+
+  font-size: 15px;
+}
+
+.book-detail-information > .book-year {
+  display: block;
+
+  margin: 10px 0 0;
+}
+
+/* =========================================================
+   STATUS CONTROLS
+========================================================= */
+
+.status-controls {
+  margin-top: 44px;
+
+  padding-top: 36px;
+
+  border-top: 1px solid var(--border);
+}
+
+.status-buttons {
+  margin-top: 16px;
+
+  display: flex;
+  justify-content: center;
+
+  gap: 10px;
+}
+
+.status-buttons .shelf-button {
+  margin-top: 0;
+}
+
+/* =========================================================
+   PROGRESS CONTROLS
+========================================================= */
+
+.progress-controls,
+.review-controls {
+  margin-top: 36px;
+
+  padding-top: 36px;
+
+  border-top: 1px solid var(--border);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+
+  margin: 16px 0 10px;
+
+  border-radius: 999px;
+
+  background: var(--border);
+
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+
+  background: var(--burgundy);
+
+  border-radius: 999px;
+
+  transition: width 0.4s ease;
+}
+
+.progress-label {
+  margin: 0 0 20px;
+
+  color: var(--charcoal-soft);
+
+  font-size: 12px;
+
+  letter-spacing: 0.3px;
+}
+
+.progress-form {
+  display: flex;
+  justify-content: center;
+
+  gap: 10px;
+}
+
+.progress-form input {
+  width: 120px;
+  height: 44px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 5px;
+
+  outline: none;
+
+  background: var(--white);
+
+  color: var(--charcoal);
+
+  font-size: 14px;
+
+  text-align: center;
+}
+
+.progress-form input:focus {
+  border-color: var(--burgundy);
+
+  box-shadow: 0 0 0 3px rgba(114, 47, 63, 0.08);
+}
+
+.progress-form button {
+  height: 44px;
+
+  padding: 0 20px;
+
+  border: 0;
+
+  border-radius: 5px;
+
+  background: var(--charcoal);
+
+  color: var(--white);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  transition: background 0.2s ease;
+}
+
+.progress-form button:hover:not(:disabled) {
+  background: var(--burgundy);
+}
+
+.progress-form button:disabled {
+  opacity: 0.6;
+}
+
+/* =========================================================
+   RATING & REVIEW
+========================================================= */
+
+.rating-stars {
+  display: flex;
+  justify-content: center;
+
+  gap: 6px;
+
+  margin: 16px 0 24px;
+}
+
+.star {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+
+  background: transparent;
+  background-color: transparent;
+
+  padding: 0;
+
+  font-size: 30px;
+  line-height: 1;
+
+  color: var(--border);
+
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.star:hover,
+.star:focus,
+.star:active {
+  background: transparent;
+  background-color: transparent;
+
+  outline: 0;
+}
+.star:hover {
+  transform: scale(1.12);
+}
+
+.star.filled {
+  color: var(--burgundy);
+}
+
+.review-form textarea {
+  width: 100%;
+
+  padding: 16px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 5px;
+
+  outline: none;
+
+  background: var(--white);
+
+  color: var(--charcoal);
+
+  font-size: 14px;
+
+  line-height: 1.6;
+
+  font-family: inherit;
+
+  resize: vertical;
+}
+
+.review-form textarea:focus {
+  border-color: var(--burgundy);
+
+  box-shadow: 0 0 0 3px rgba(114, 47, 63, 0.08);
+}
+
+.review-form button {
+  margin-top: 14px;
+
+  height: 44px;
+
+  padding: 0 24px;
+
+  border: 0;
+
+  border-radius: 5px;
+
+  background: var(--charcoal);
+
+  color: var(--white);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  transition: background 0.2s ease;
+}
+
+.review-form button:hover:not(:disabled) {
+  background: var(--burgundy);
+}
+
+/* =========================================================
+   REMOVE BUTTON
+========================================================= */
+
+.remove-button {
+  margin-top: 44px;
+
+  border: 0;
+  background: transparent;
+
+  padding: 8px 0;
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+  text-decoration: underline;
+
+  text-underline-offset: 3px;
+}
+
+.remove-button:hover {
+  color: var(--burgundy);
+}
+
+/* =========================================================
+   SHELF EMPTY STATE
+========================================================= */
+
+.shelf-empty {
+  padding: 40px 0;
+
+  color: var(--charcoal-soft);
+
+  font-size: 14px;
+}
+
+.shelf-empty a {
+  color: var(--burgundy);
+
+  text-decoration: underline;
+
+  text-underline-offset: 2px;
+}

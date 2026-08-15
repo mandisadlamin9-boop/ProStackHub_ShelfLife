@@ -57,6 +57,7 @@ function BookDetail() {
   useEffect(() => {
     loadShelfItem();
   }, [shelfItemId]);
+
   const updateShelfItem = async (updates) => {
     setSaving(true);
     setError("");
@@ -186,6 +187,10 @@ function BookDetail() {
         )
       : 0;
 
+  const previewUrl = shelfItem.Isbn
+    ? "https://books.google.com/books?isbn=" + shelfItem.Isbn
+    : null;
+
   return (
     <div className="shelf-life">
       <Header />
@@ -193,7 +198,7 @@ function BookDetail() {
       <main className="discover-page">
         <section className="discover-header">
           <Link to="/my-shelf" className="login-back">
-            ← Back to My Shelf
+            Back to My Shelf
           </Link>
         </section>
 
@@ -202,7 +207,7 @@ function BookDetail() {
             {shelfItem.CoverUrl ? (
               <img
                 src={shelfItem.CoverUrl}
-                alt={`Cover of ${shelfItem.Title}`}
+                alt={"Cover of " + shelfItem.Title}
               />
             ) : (
               <div className="no-cover">
@@ -217,7 +222,23 @@ function BookDetail() {
             <p className="book-author">{shelfItem.Author}</p>
 
             {shelfItem.Isbn && (
-              <p className="book-year">ISBN: {shelfItem.Isbn}</p>
+              <p className="book-year">
+                {"ISBN: " + shelfItem.Isbn}
+                {previewUrl && (
+                  <>
+                    {" — "}
+
+                    <a
+                      href={previewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="preview-link"
+                    >
+                      Preview on Google Books
+                    </a>
+                  </>
+                )}
+              </p>
             )}
 
             <div className="status-controls">
@@ -271,7 +292,7 @@ function BookDetail() {
                     <div className="progress-bar">
                       <div
                         className="progress-fill"
-                        style={{ width: `${progressPercent}%` }}
+                        style={{ width: progressPercent + "%" }}
                       />
                     </div>
 
@@ -312,7 +333,7 @@ function BookDetail() {
                         key={star}
                         className={star <= rating ? "star filled" : "star"}
                         onClick={() => setRating(star)}
-                        aria-label={`Rate ${star} stars`}
+                        aria-label={"Rate " + star + " stars"}
                       >
                         ★
                       </button>
@@ -334,7 +355,7 @@ function BookDetail() {
             )}
 
             {error && (
-              <p className="login-error" role="alert">
+              <p className="login-error" role="alert" style={{ marginTop: 20 }}>
                 {error}
               </p>
             )}

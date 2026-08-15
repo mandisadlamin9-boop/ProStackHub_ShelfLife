@@ -109,6 +109,7 @@ app.get("/api/books/search", async (req, res) => {
           year: info.publishedDate ? info.publishedDate.slice(0, 4) : null,
           isbn,
           totalPages: info.pageCount || null,
+          description: info.description || null,
         };
       })
       .filter((book) => book.coverUrl !== null)
