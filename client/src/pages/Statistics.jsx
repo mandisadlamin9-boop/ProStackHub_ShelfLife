@@ -24,7 +24,7 @@ function Statistics() {
 
         const response = await fetch("http://localhost:5000/api/shelf/stats", {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: "Bearer " + token,
           },
         });
 
@@ -45,6 +45,8 @@ function Statistics() {
 
     loadStats();
   }, []);
+
+  const plural = (count, singular) => (count === 1 ? singular : singular + "s");
 
   return (
     <div className="shelf-life">
@@ -83,80 +85,90 @@ function Statistics() {
 
         {isLoggedIn && !loading && !error && stats && (
           <>
-            <section className="books-section">
-              <div className="books-heading">
-                <div>
-                  <span className="section-kicker">OVERVIEW</span>
-                  <h2>Your shelf at a glance</h2>
-                </div>
+            {stats.totalBooks === 0 ? (
+              <div className="stats-narrative">
+                <p>
+                  Your shelf is empty for now. Once you start adding books, this
+                  page will fill in with a picture of your reading journey.
+                </p>
               </div>
-
-              <div className="stat-grid">
-                <div className="stat-item">
-                  <span className="stat-value">{stats.totalBooks}</span>
-                  <span className="stat-label">Total Books</span>
-                </div>
-
-                <div className="stat-item">
-                  <span className="stat-value">{stats.readCount}</span>
-                  <span className="stat-label">Read</span>
-                </div>
-
-                <div className="stat-item">
-                  <span className="stat-value">
-                    {stats.currentlyReadingCount}
+            ) : (
+              <>
+                <section className="stats-headline">
+                  <span className="stats-headline-number">
+                    {stats.totalBooks}
                   </span>
-                  <span className="stat-label">Currently Reading</span>
-                </div>
-
-                <div className="stat-item">
-                  <span className="stat-value">{stats.wantToReadCount}</span>
-                  <span className="stat-label">Want to Read</span>
-                </div>
-              </div>
-            </section>
-
-            <section className="books-section">
-              <div className="books-heading">
-                <div>
-                  <span className="section-kicker">PROGRESS</span>
-                  <h2>Pages and ratings</h2>
-                </div>
-              </div>
-
-              <div className="stat-grid">
-                <div className="stat-item">
-                  <span className="stat-value">
-                    {stats.totalPagesRead.toLocaleString()}
+                  <span className="stats-headline-label">
+                    {plural(stats.totalBooks, "book")} on your shelf
                   </span>
-                  <span className="stat-label">
-                    Pages Read (Completed Books)
-                  </span>
-                </div>
+                </section>
 
-                <div className="stat-item">
-                  <span className="stat-value">
-                    {stats.pagesInProgress.toLocaleString()}
-                  </span>
-                  <span className="stat-label">Pages Read (In Progress)</span>
-                </div>
+                <section className="stats-narrative">
+                  <p>
+                    {stats.readCount > 0 ? (
+                      <>
+                        You've finished <strong>{stats.readCount}</strong> of
+                        them
+                        {stats.totalPagesRead > 0 && (
+                          <>
+                            {" "}
+                            —{" "}
+                            <strong>
+                              {stats.totalPagesRead.toLocaleString()}
+                            </strong>{" "}
+                            pages in total.
+                          </>
+                        )}
+                        {stats.totalPagesRead === 0 && "."}
+                      </>
+                    ) : (
+                      "You haven't finished a book yet, but every shelf starts somewhere."
+                    )}
+                  </p>
 
-                <div className="stat-item">
-                  <span className="stat-value">
-                    {stats.averageRating !== null
-                      ? stats.averageRating.toFixed(1)
-                      : "—"}
-                  </span>
-                  <span className="stat-label">
-                    Average Rating
-                    {stats.ratedCount > 0 &&
-                      ` (${stats.ratedCount} book${
-                        stats.ratedCount === 1 ? "" : "s"
-                      })`}
-                  </span>
-                </div>
-              </div>
-            </section>
+                  {stats.currentlyReadingCount > 0 && (
+                    <p>
+                      Right now you're partway through{" "}
+                      <strong>{stats.currentlyReadingCount}</strong>{" "}
+                      {plural(stats.currentlyReadingCount, "book")}
+                      {stats.pagesInProgress > 0 && (
+                        <>
+                          , with{" "}
+                          <strong>
+                            {stats.pagesInProgress.toLocaleString()}
+                          </strong>{" "}
+                          pages read across them
+                        </>
+                      )}
+                      .
+                    </p>
+                  )}
+
+                  {stats.wantToReadCount > 0 && (
+                    <p>
+                      There are <strong>{stats.wantToReadCount}</strong>{" "}
+                      {plural(stats.wantToReadCount, "book")} still waiting on
+                      your want-to-read list.
+                    </p>
+                  )}
+
+                  {stats.averageRating !== null && (
+                    <p>
+                      Across the books you've rated, you've given an average of{" "}
+                      <strong>{stats.averageRating.toFixed(1)}</strong> out of 5
+                      stars
+                      {stats.ratedCount > 0 && (
+                        <>
+                          {" "}
+                          ({stats.ratedCount}{" "}
+                          {plural(stats.ratedCount, "rating")}).
+                        </>
+                      )}
+                    </p>
+                  )}
+                </section>
+              </>
+            )}
           </>
         )}
       </main>

@@ -1521,3 +1521,89 @@ button {
 
   text-underline-offset: 2px;
 }
+/* =========================================================
+   STATISTICS NARRATIVE
+========================================================= */
+
+.stats-narrative {
+  max-width: 640px;
+
+  padding: 0 0 80px;
+}
+
+.stats-narrative p {
+  margin: 0 0 24px;
+
+  color: var(--charcoal);
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: 21px;
+
+  font-weight: 400;
+
+  line-height: 1.6;
+}
+
+.stats-narrative p:last-child {
+  margin-bottom: 0;
+}
+
+.stats-narrative strong {
+  color: var(--burgundy);
+
+  font-weight: 400;
+  font-style: italic;
+}
+/* =========================================================
+   STATISTICS HEADLINE
+========================================================= */
+
+.stats-headline {
+  padding: 24px 0 56px;
+
+  border-top: 1px solid var(--border);
+
+  display: flex;
+  align-items: baseline;
+
+  gap: 20px;
+}
+
+.stats-headline-number {
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: clamp(80px, 12vw, 150px);
+
+  font-weight: 400;
+
+  color: var(--burgundy);
+
+  line-height: 0.85;
+
+  letter-spacing: -4px;
+}
+
+.stats-headline-label {
+  color: var(--charcoal-soft);
+
+  font-size: 16px;
+
+  line-height: 1.4;
+
+  max-width: 160px;
+}
+
+@media (max-width: 600px) {
+  .stats-headline {
+    flex-direction: column;
+
+    gap: 4px;
+
+    padding: 16px 0 40px;
+  }
+
+  .stats-headline-number {
+    font-size: clamp(64px, 22vw, 110px);
+  }
+}
