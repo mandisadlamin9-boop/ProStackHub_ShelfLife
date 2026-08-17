@@ -1,6 +1,122 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
+import Loader from "../components/Loader";
+
+const STATUS_META = [
+  { key: "wantToReadCount", label: "Want to Read", color: "var(--teal)" },
+  {
+    key: "currentlyReadingCount",
+    label: "Currently Reading",
+    color: "var(--amber)",
+  },
+  { key: "readCount", label: "Read", color: "var(--pink)" },
+];
+
+function StatusDonut({ stats }) {
+  const total =
+    stats.wantToReadCount + stats.currentlyReadingCount + stats.readCount;
+
+  if (total === 0) return null;
+
+  const radius = 70;
+  const circumference = 2 * Math.PI * radius;
+  let offsetSoFar = 0;
+
+  const segments = STATUS_META.map((meta) => {
+    const count = stats[meta.key];
+    const fraction = count / total;
+    const dash = fraction * circumference;
+    const segment = {
+      ...meta,
+      count,
+      dashArray: `${dash} ${circumference - dash}`,
+      dashOffset: -offsetSoFar,
+    };
+    offsetSoFar += dash;
+    return segment;
+  });
+
+  return (
+    <div className="stats-donut-block">
+      <svg viewBox="0 0 180 180" className="stats-donut">
+        <circle
+          cx="90"
+          cy="90"
+          r={radius}
+          fill="none"
+          stroke="var(--paper)"
+          strokeWidth="22"
+        />
+        {segments.map(
+          (segment) =>
+            segment.count > 0 && (
+              <circle
+                key={segment.label}
+                cx="90"
+                cy="90"
+                r={radius}
+                fill="none"
+                stroke={segment.color}
+                strokeWidth="22"
+                strokeDasharray={segment.dashArray}
+                strokeDashoffset={segment.dashOffset}
+                transform="rotate(-90 90 90)"
+                strokeLinecap="butt"
+              />
+            ),
+        )}
+        <text x="90" y="84" textAnchor="middle" className="stats-donut-number">
+          {total}
+        </text>
+        <text
+          x="90"
+          y="104"
+          textAnchor="middle"
+          className="stats-donut-caption"
+        >
+          books
+        </text>
+      </svg>
+
+      <ul className="stats-donut-legend">
+        {STATUS_META.map((meta) => (
+          <li key={meta.label}>
+            <span
+              className="stats-donut-swatch"
+              style={{ background: meta.color }}
+            />
+            <span className="stats-donut-legend-label">{meta.label}</span>
+            <span className="stats-donut-legend-count">{stats[meta.key]}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function RatingBar({ averageRating, ratedCount }) {
+  if (averageRating === null) return null;
+
+  const percent = (averageRating / 5) * 100;
+
+  return (
+    <div className="stats-rating-block">
+      <div className="stats-rating-top">
+        <span className="stats-rating-number">{averageRating.toFixed(1)}</span>
+        <span className="stats-rating-out-of">/ 5 average rating</span>
+      </div>
+
+      <div className="stats-rating-bar">
+        <div className="stats-rating-fill" style={{ width: `${percent}%` }} />
+      </div>
+
+      <p className="stats-rating-caption">
+        Based on {ratedCount} {ratedCount === 1 ? "rating" : "ratings"}
+      </p>
+    </div>
+  );
+}
 
 function Statistics() {
   const [stats, setStats] = useState(null);
@@ -53,15 +169,12 @@ function Statistics() {
       <Header />
 
       <main className="discover-page">
-        <section className="discover-header">
-          <div>
-            <span className="discover-kicker">STATISTICS</span>
-            <h1>Your reading journey.</h1>
-            <p>
-              A look at what you've read, what you're reading, and how it adds
-              up.
-            </p>
-          </div>
+        <section className="shelf-hero">
+          <span className="shelf-hero-kicker">STATISTICS</span>
+          <h1 className="shelf-hero-heading">Your reading journey.</h1>
+          <p className="shelf-hero-subheading">
+            A look at what you've read, what you're reading, and how it adds up.
+          </p>
         </section>
 
         {!isLoggedIn && (
@@ -72,8 +185,7 @@ function Statistics() {
 
         {isLoggedIn && loading && (
           <div className="books-state">
-            <div className="loader" />
-            <p>Loading your statistics...</p>
+            <Loader label="Loading books..." />
           </div>
         )}
 
@@ -94,78 +206,44 @@ function Statistics() {
               </div>
             ) : (
               <>
-                <section className="stats-headline">
-                  <span className="stats-headline-number">
-                    {stats.totalBooks}
-                  </span>
-                  <span className="stats-headline-label">
-                    {plural(stats.totalBooks, "book")} on your shelf
-                  </span>
-                </section>
+                <section className="stats-charts">
+                  <StatusDonut stats={stats} />
+                  <RatingBar
+                    averageRating={stats.averageRating}
+                    ratedCount={stats.ratedCount}
+                  />
 
-                <section className="stats-narrative">
-                  <p>
-                    {stats.readCount > 0 ? (
-                      <>
-                        You've finished <strong>{stats.readCount}</strong> of
-                        them
-                        {stats.totalPagesRead > 0 && (
-                          <>
-                            {" "}
-                            —{" "}
-                            <strong>
-                              {stats.totalPagesRead.toLocaleString()}
-                            </strong>{" "}
-                            pages in total.
-                          </>
-                        )}
-                        {stats.totalPagesRead === 0 && "."}
-                      </>
-                    ) : (
-                      "You haven't finished a book yet, but every shelf starts somewhere."
+                  <div className="stats-metric-cards">
+                    {stats.totalPagesRead > 0 && (
+                      <div className="stats-metric-card" data-accent="violet">
+                        <span className="stats-metric-number">
+                          {stats.totalPagesRead.toLocaleString()}
+                        </span>
+                        <span className="stats-metric-label">
+                          pages read across finished books
+                        </span>
+                      </div>
                     )}
-                  </p>
 
-                  {stats.currentlyReadingCount > 0 && (
-                    <p>
-                      Right now you're partway through{" "}
-                      <strong>{stats.currentlyReadingCount}</strong>{" "}
-                      {plural(stats.currentlyReadingCount, "book")}
-                      {stats.pagesInProgress > 0 && (
-                        <>
-                          , with{" "}
-                          <strong>
+                    {stats.currentlyReadingCount > 0 &&
+                      stats.pagesInProgress > 0 && (
+                        <div className="stats-metric-card" data-accent="amber">
+                          <span className="stats-metric-number">
                             {stats.pagesInProgress.toLocaleString()}
-                          </strong>{" "}
-                          pages read across them
-                        </>
+                          </span>
+                          <span className="stats-metric-label">
+                            pages into books open right now
+                          </span>
+                        </div>
                       )}
-                      .
-                    </p>
-                  )}
 
-                  {stats.wantToReadCount > 0 && (
-                    <p>
-                      There are <strong>{stats.wantToReadCount}</strong>{" "}
-                      {plural(stats.wantToReadCount, "book")} still waiting on
-                      your want-to-read list.
-                    </p>
-                  )}
-
-                  {stats.averageRating !== null && (
-                    <p>
-                      Across the books you've rated, you've given an average of{" "}
-                      <strong>{stats.averageRating.toFixed(1)}</strong> out of 5
-                      stars
-                      {stats.ratedCount > 0 && (
-                        <>
-                          {" "}
-                          ({stats.ratedCount}{" "}
-                          {plural(stats.ratedCount, "rating")}).
-                        </>
-                      )}
-                    </p>
-                  )}
+                    {stats.readCount === 0 && (
+                      <p className="stats-empty-note">
+                        You haven't finished a book yet, but every shelf starts
+                        somewhere.
+                      </p>
+                    )}
+                  </div>
                 </section>
               </>
             )}

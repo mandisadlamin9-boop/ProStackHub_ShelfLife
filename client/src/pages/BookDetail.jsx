@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
+import Loader from "../components/Loader";
 
 function BookDetail() {
   const { shelfItemId } = useParams();
@@ -14,6 +15,7 @@ function BookDetail() {
   const [currentPage, setCurrentPage] = useState("");
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
+  const [reviewSaved, setReviewSaved] = useState(false);
 
   const token = localStorage.getItem("shelflifeToken");
 
@@ -57,8 +59,7 @@ function BookDetail() {
   useEffect(() => {
     loadShelfItem();
   }, [shelfItemId]);
-
-  const updateShelfItem = async (updates) => {
+  const updateShelfItem = async (updates, onSuccess) => {
     setSaving(true);
     setError("");
 
@@ -82,6 +83,7 @@ function BookDetail() {
       const data = await response.json();
 
       setShelfItem(data.shelfItem);
+      if (onSuccess) onSuccess();
     } catch (err) {
       console.error("Update shelf item error:", err);
       setError("We couldn't save your changes. Please try again.");
@@ -89,7 +91,6 @@ function BookDetail() {
       setSaving(false);
     }
   };
-
   const handleStatusChange = (newStatus) => {
     updateShelfItem({ status: newStatus });
   };
@@ -113,7 +114,10 @@ function BookDetail() {
   const handleReviewSave = (event) => {
     event.preventDefault();
 
-    updateShelfItem({ rating, review });
+    updateShelfItem({ rating, review }, () => {
+      setReviewSaved(true);
+      setTimeout(() => setReviewSaved(false), 2500);
+    });
   };
 
   const handleRemove = async () => {
@@ -153,8 +157,7 @@ function BookDetail() {
         <Header />
         <main className="discover-page">
           <div className="books-state">
-            <div className="loader" />
-            <p>Loading book...</p>
+            <Loader label="Loading books..." />
           </div>
         </main>
       </div>
@@ -196,9 +199,9 @@ function BookDetail() {
       <Header />
 
       <main className="discover-page">
-        <section className="discover-header">
-          <Link to="/my-shelf" className="login-back">
-            Back to My Shelf
+        <section className="book-detail-topline">
+          <Link to="/my-shelf" className="back-link">
+            ← Back to My Shelf
           </Link>
         </section>
 
@@ -246,6 +249,7 @@ function BookDetail() {
 
               <div className="status-buttons">
                 <button
+                  data-status="want_to_read"
                   className={
                     shelfItem.Status === "want_to_read"
                       ? "shelf-button added"
@@ -258,6 +262,7 @@ function BookDetail() {
                 </button>
 
                 <button
+                  data-status="currently_reading"
                   className={
                     shelfItem.Status === "currently_reading"
                       ? "shelf-button added"
@@ -270,6 +275,7 @@ function BookDetail() {
                 </button>
 
                 <button
+                  data-status="read"
                   className={
                     shelfItem.Status === "read"
                       ? "shelf-button added"
@@ -315,8 +321,14 @@ function BookDetail() {
                   />
 
                   <button type="submit" disabled={saving}>
-                    {saving ? "Saving..." : "Update Progress"}
+                    {saving ? "Saving..." : "Save Review"}
                   </button>
+
+                  {reviewSaved && (
+                    <p className="review-saved">
+                      Saved — thanks for sharing your thoughts.
+                    </p>
+                  )}
                 </form>
               </div>
             )}

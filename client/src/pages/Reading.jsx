@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
+import Loader from "../components/Loader";
 
 function Reading() {
   const [shelfItems, setShelfItems] = useState([]);
@@ -55,15 +56,13 @@ function Reading() {
       <Header />
 
       <main className="discover-page">
-        <section className="discover-header">
-          <div>
-            <span className="discover-kicker">READING</span>
-            <h1>What you're reading now.</h1>
-            <p>
-              Every book currently in progress, with your latest page and
-              percent complete.
-            </p>
-          </div>
+        <section className="shelf-hero">
+          <span className="shelf-hero-kicker">READING</span>
+          <h1 className="shelf-hero-heading">What you're reading now.</h1>
+          <p className="shelf-hero-subheading">
+            Every book currently in progress, with your latest page and percent
+            complete.
+          </p>
         </section>
 
         {!isLoggedIn && (
@@ -74,8 +73,7 @@ function Reading() {
 
         {isLoggedIn && loading && (
           <div className="books-state">
-            <div className="loader" />
-            <p>Loading your reading list...</p>
+            <Loader label="Loading books..." />
           </div>
         )}
 

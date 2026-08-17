@@ -87,7 +87,7 @@ app.get("/api/books/search", async (req, res) => {
     const data = await response.json();
 
     const junkPatterns =
-      /\b(proceedings|catalogue|catalog|bulletin|subject-index|subject index|annual report|transactions|yearbook|bibliography|guide to writing|handbook|recommendation culture)\b/i;
+      /\b(proceedings|catalogue|catalog|bulletin|subject-index|subject index|annual report|transactions|yearbook|bibliography|guide to writing|handbook|recommendation culture|digest edition|large print|illustrated classics|annotated|study guide|sparknotes)\b/i;
 
     const books = (data.items || [])
       .map((item) => {
@@ -114,7 +114,7 @@ app.get("/api/books/search", async (req, res) => {
       })
       .filter((book) => book.coverUrl !== null)
       .filter((book) => !junkPatterns.test(book.title))
-      .slice(0, 12);
+      .slice(0, 20);
 
     return res.status(200).json({ books });
   } catch (error) {

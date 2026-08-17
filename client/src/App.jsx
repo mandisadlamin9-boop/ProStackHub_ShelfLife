@@ -6,6 +6,7 @@ import MyShelf from "./pages/MyShelf";
 import BookDetail from "./pages/BookDetail";
 import Reading from "./pages/Reading";
 import Statistics from "./pages/Statistics";
+import Register from "./pages/Register";
 import "./App.css";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/shelf/:shelfItemId" element={<BookDetail />} />
           <Route path="/reading" element={<Reading />} />
           <Route path="/statistics" element={<Statistics />} />
+          <Route path="/register" element={<Register />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

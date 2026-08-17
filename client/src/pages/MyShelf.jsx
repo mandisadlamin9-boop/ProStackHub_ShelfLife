@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
+import Loader from "../components/Loader";
+
+const SECTION_ACCENTS = {
+  "Currently Reading": "#EF9F27",
+  "Want to Read": "#5DCAA5",
+  Read: "#D4537E",
+};
 
 function MyShelf() {
   const [shelfItems, setShelfItems] = useState([]);
@@ -59,7 +66,12 @@ function MyShelf() {
     <section className="books-section">
       <div className="books-heading">
         <div>
-          <span className="section-kicker">MY SHELF</span>
+          <span
+            className="section-kicker"
+            style={{ color: SECTION_ACCENTS[title] }}
+          >
+            {title.toUpperCase()}
+          </span>
           <h2>{title}</h2>
         </div>
 
@@ -67,7 +79,9 @@ function MyShelf() {
       </div>
 
       {items.length === 0 ? (
-        <p className="shelf-empty">No books here yet.</p>
+        <p className="shelf-empty">
+          No books here yet. <Link to="/">Browse books</Link> to add some.
+        </p>
       ) : (
         <div className="book-grid">
           {items.map((item) => (
@@ -130,15 +144,13 @@ function MyShelf() {
       <Header />
 
       <main className="discover-page">
-        <section className="discover-header">
-          <div>
-            <span className="discover-kicker">MY SHELF</span>
-            <h1>Your personal library.</h1>
-            <p>
-              Every book you've saved, organized by where you are in your
-              reading journey.
-            </p>
-          </div>
+        <section className="shelf-hero">
+          <span className="shelf-hero-kicker">MY SHELF</span>
+          <h1 className="shelf-hero-heading">Your personal library.</h1>
+          <p className="shelf-hero-subheading">
+            Every book you've saved, organized by where you are in your reading
+            journey.
+          </p>
         </section>
 
         {!isLoggedIn && (
@@ -149,8 +161,7 @@ function MyShelf() {
 
         {isLoggedIn && loading && (
           <div className="books-state">
-            <div className="loader" />
-            <p>Loading your shelf...</p>
+            <Loader label="Loading books..." />
           </div>
         )}
 

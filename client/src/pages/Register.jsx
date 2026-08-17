@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const SHELF_ROWS = [
   [
@@ -65,44 +64,50 @@ function BookshelfIllustration() {
   );
 }
 
-export default function Login() {
+export default function Register() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Enter your email and password.");
+
+    if (!fullName.trim() || !email.trim() || !password) {
+      setError("Fill in your name, email and password.");
       return;
     }
+    if (fullName.trim().length < 2) {
+      setError("Please enter your full name.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must contain at least 8 characters.");
+      return;
+    }
+
     setError("");
     setSubmitting(true);
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ fullName, email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Couldn't sign in. Check your details and try again.",
+          data.message || "Couldn't create your account. Try again.",
         );
       }
 
-      login(data.token, data.account);
-      navigate("/");
+      navigate("/login", { state: { registered: true } });
     } catch (err) {
-      setError(
-        err.message || "Couldn't sign in. Check your details and try again.",
-      );
+      setError(err.message || "Couldn't create your account. Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -134,33 +139,29 @@ export default function Login() {
 
         <div className="login-form-panel">
           <div className="login-wordmark">ShelfLife</div>
-          <h1 className="login-heading">Welcome back to your shelf</h1>
+          <h1 className="login-heading">Create your shelf</h1>
           <p className="login-subheading">
-            Continue discovering books and tracking your reading.
+            Start tracking what you read, one book at a time.
           </p>
-          {location.state?.registered && (
-            <p className="login-success">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#3f6848"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Account created. Sign in to continue.
-            </p>
-          )}
+
           <form onSubmit={handleSubmit} className="login-form" noValidate>
-            <label className="login-label" htmlFor="login-email">
+            <label className="login-label" htmlFor="register-name">
+              Full name
+            </label>
+            <input
+              id="register-name"
+              type="text"
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Jordan Lee"
+            />
+
+            <label className="login-label" htmlFor="register-email">
               Email
             </label>
             <input
-              id="login-email"
+              id="register-email"
               type="email"
               autoComplete="email"
               value={email}
@@ -168,16 +169,16 @@ export default function Login() {
               placeholder="name@email.com"
             />
 
-            <label className="login-label" htmlFor="login-password">
+            <label className="login-label" htmlFor="register-password">
               Password
             </label>
             <input
-              id="login-password"
+              id="register-password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder="At least 8 characters"
             />
 
             {error && <p className="login-error">{error}</p>}
@@ -187,12 +188,12 @@ export default function Login() {
               className="login-button"
               disabled={submitting}
             >
-              {submitting ? "Signing in..." : "Sign in"}
+              {submitting ? "Creating account..." : "Create account"}
             </button>
           </form>
 
           <p className="login-footer-link">
-            New here? <Link to="/register">Create an account</Link>
+            Already have an account? <Link to="/login">Sign in</Link>
           </p>
         </div>
       </div>
