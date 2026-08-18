@@ -77,6 +77,14 @@ export function AuthProvider({ children }) {
     setShelfBookIds((prev) => new Set(prev).add(googleBooksId));
   };
 
+  const removeFromShelfIds = (googleBooksId) => {
+    setShelfBookIds((prev) => {
+      const next = new Set(prev);
+      next.delete(googleBooksId);
+      return next;
+    });
+  };
+
   const value = {
     isLoggedIn,
     currentUser,
@@ -90,13 +98,7 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-const removeFromShelfIds = (googleBooksId) => {
-  setShelfBookIds((prev) => {
-    const next = new Set(prev);
-    next.delete(googleBooksId);
-    return next;
-  });
-};
+
 export function useAuth() {
   const context = useContext(AuthContext);
 
