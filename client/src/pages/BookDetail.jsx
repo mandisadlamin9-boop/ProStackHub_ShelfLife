@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Loader from "../components/Loader";
+import { useRef } from "react";
 
 function BookDetail() {
   const { shelfItemId } = useParams();
@@ -16,6 +17,8 @@ function BookDetail() {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [reviewSaved, setReviewSaved] = useState(false);
+  const [progressSaved, setProgressSaved] = useState(false);
+  const celebrateZoneRef = useRef(null);
 
   const token = localStorage.getItem("shelflifeToken");
 
@@ -92,9 +95,35 @@ function BookDetail() {
     }
   };
   const handleStatusChange = (newStatus) => {
-    updateShelfItem({ status: newStatus });
+    const wasNotRead = shelfItem.Status !== "read";
+
+    updateShelfItem({ status: newStatus }, () => {
+      if (newStatus === "read" && wasNotRead) {
+        burstConfetti();
+      }
+    });
   };
 
+  const burstConfetti = () => {
+    const zone = celebrateZoneRef.current;
+    if (!zone) return;
+
+    const colors = ["#D85A30", "#0F6E56", "#EF9F27", "#534AB7", "#D4537E"];
+
+    for (let i = 0; i < 12; i++) {
+      const dot = document.createElement("span");
+      const angle = (Math.PI * 2 * i) / 12;
+      const dist = 40 + Math.random() * 30;
+      dot.className = "celebrate-dot";
+      dot.style.background = colors[i % colors.length];
+      dot.style.left = "50%";
+      dot.style.top = "0px";
+      dot.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+      dot.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+      zone.appendChild(dot);
+      setTimeout(() => dot.remove(), 700);
+    }
+  };
   const handleProgressSave = (event) => {
     event.preventDefault();
 
@@ -108,7 +137,10 @@ function BookDetail() {
       pageNumber = shelfItem.TotalPages;
     }
 
-    updateShelfItem({ currentPage: pageNumber });
+    updateShelfItem({ currentPage: pageNumber }, () => {
+      setProgressSaved(true);
+      setTimeout(() => setProgressSaved(false), 2500);
+    });
   };
 
   const handleReviewSave = (event) => {
@@ -247,7 +279,11 @@ function BookDetail() {
             <div className="status-controls">
               <span className="section-kicker">READING STATUS</span>
 
-              <div className="status-buttons">
+              <div
+                className="status-buttons"
+                ref={celebrateZoneRef}
+                style={{ position: "relative" }}
+              >
                 <button
                   data-status="want_to_read"
                   className={
@@ -321,15 +357,13 @@ function BookDetail() {
                   />
 
                   <button type="submit" disabled={saving}>
-                    {saving ? "Saving..." : "Save Review"}
+                    {saving ? "Saving..." : "Update Progress"}
                   </button>
-
-                  {reviewSaved && (
-                    <p className="review-saved">
-                      Saved — thanks for sharing your thoughts.
-                    </p>
-                  )}
                 </form>
+
+                {progressSaved && (
+                  <p className="review-saved">Progress updated.</p>
+                )}
               </div>
             )}
 
@@ -363,6 +397,12 @@ function BookDetail() {
                     {saving ? "Saving..." : "Save Review"}
                   </button>
                 </form>
+
+                {reviewSaved && (
+                  <p className="review-saved">
+                    Saved — thanks for sharing your thoughts.
+                  </p>
+                )}
               </div>
             )}
 

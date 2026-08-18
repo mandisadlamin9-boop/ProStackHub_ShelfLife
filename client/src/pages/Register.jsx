@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import CaptchaModal from "../components/CaptchaModal";
 
 const SHELF_ROWS = [
   [
@@ -70,9 +71,10 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [captchaModalOpen, setCaptchaModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
 
     if (!fullName.trim() || !email.trim() || !password) {
@@ -89,6 +91,10 @@ export default function Register() {
     }
 
     setError("");
+    setCaptchaModalOpen(true);
+  }
+
+  async function doRegister() {
     setSubmitting(true);
     try {
       const response = await fetch("http://localhost:5000/api/auth/register", {
@@ -197,6 +203,16 @@ export default function Register() {
           </p>
         </div>
       </div>
+
+      {captchaModalOpen && (
+        <CaptchaModal
+          onClose={() => setCaptchaModalOpen(false)}
+          onVerified={() => {
+            setCaptchaModalOpen(false);
+            doRegister();
+          }}
+        />
+      )}
     </div>
   );
 }

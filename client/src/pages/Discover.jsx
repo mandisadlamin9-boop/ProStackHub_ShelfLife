@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import Header from "../components/Header";
 import Loader from "../components/Loader";
+import BookCardSkeleton from "../components/BookCardSkeleton";
 
 const HERO_SLIDE_COUNT = 5;
 const AUTO_ADVANCE_MS = 6000;
+const SEARCH_DEBOUNCE_MS = 400;
 
 const CATEGORIES = [
   { label: "All", query: "", color: "#534AB7", tint: "#EBE9FB" },
@@ -35,6 +38,14 @@ const CATEGORIES = [
   },
 ];
 
+function buildSearchQuery(rawQuery) {
+  const cleaned = rawQuery.replace(/[-\s]/g, "");
+  const isIsbn = /^(97[89])?\d{9}(\d|X)$/i.test(cleaned);
+  return isIsbn
+    ? `isbn:${cleaned}`
+    : `intitle:${rawQuery} OR inauthor:${rawQuery}`;
+}
+
 function Discover() {
   const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,8 +56,16 @@ function Discover() {
   const [activeSlide, setActiveSlide] = useState(0);
   const isPaused = useRef(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const debounceTimer = useRef(null);
 
-  const { isLoggedIn, currentUser, shelfBookIds, addToShelfIds } = useAuth();
+  const {
+    isLoggedIn,
+    currentUser,
+    shelfBookIds,
+    addToShelfIds,
+    removeFromShelfIds,
+  } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const fetchBooks = async (query = "") => {
@@ -78,6 +97,26 @@ function Discover() {
     fetchBooks();
   }, []);
 
+  useEffect(() => {
+    if (!searchOpen) return;
+
+    const trimmed = searchTerm.trim();
+
+    if (!trimmed) {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      return;
+    }
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    debounceTimer.current = setTimeout(() => {
+      setActiveCategory(null);
+      fetchBooks(buildSearchQuery(trimmed));
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(debounceTimer.current);
+  }, [searchTerm, searchOpen]);
+
   const heroBooks = books.slice(0, HERO_SLIDE_COUNT);
   const rawGridBooks = books.slice(HERO_SLIDE_COUNT);
   const gridBooks = rawGridBooks.slice(
@@ -101,8 +140,11 @@ function Discover() {
     setActiveSlide((prev) => (prev + 1) % heroBooks.length);
   const prevSlide = () =>
     setActiveSlide((prev) => (prev - 1 + heroBooks.length) % heroBooks.length);
+
   const handleSearch = (event) => {
     event.preventDefault();
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
     const query = searchTerm.trim();
     setActiveCategory(null);
@@ -112,16 +154,11 @@ function Discover() {
       return;
     }
 
-    const cleaned = query.replace(/[-\s]/g, "");
-    const isIsbn = /^(97[89])?\d{9}(\d|X)$/i.test(cleaned);
-
-    if (isIsbn) {
-      fetchBooks(`isbn:${cleaned}`);
-    } else {
-      fetchBooks(`intitle:${query} OR inauthor:${query}`);
-    }
+    fetchBooks(buildSearchQuery(query));
   };
+
   const handleCategoryClick = (category) => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     setSearchTerm("");
     setActiveCategory(category.query);
     fetchBooks(category.query);
@@ -136,6 +173,7 @@ function Discover() {
     const token = localStorage.getItem("shelflifeToken");
 
     setAddingBookId(book.id);
+    addToShelfIds(book.id);
 
     try {
       const response = await fetch("http://localhost:5000/api/shelf", {
@@ -159,9 +197,11 @@ function Discover() {
         throw new Error("Unable to add book to shelf.");
       }
 
-      addToShelfIds(book.id);
+      showToast(`Added "${book.title}" to your shelf`);
     } catch (err) {
       console.error("Add to shelf error:", err);
+      removeFromShelfIds(book.id);
+      showToast("Couldn't add that book. Try again.", "error");
     } finally {
       setAddingBookId(null);
     }
@@ -178,7 +218,7 @@ function Discover() {
         onClick={() => handleAddToShelf(book)}
         disabled={addingBookId === book.id}
       >
-        {addingBookId === book.id ? "Adding..." : "Add to Shelf"}
+        Add to Shelf
       </button>
     );
 
@@ -232,8 +272,10 @@ function Discover() {
         </section>
 
         {loading && (
-          <div className="books-state">
-            <Loader label="Loading books..." />
+          <div className="book-grid" style={{ paddingTop: 40 }}>
+            {Array.from({ length: 10 }).map((_, i) => (
+              <BookCardSkeleton key={i} />
+            ))}
           </div>
         )}
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import CaptchaModal from "../components/CaptchaModal";
 
 const SHELF_ROWS = [
   [
@@ -70,17 +71,24 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [captchaModalOpen, setCaptchaModalOpen] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
+
     if (!email || !password) {
       setError("Enter your email and password.");
       return;
     }
+
     setError("");
+    setCaptchaModalOpen(true);
+  }
+
+  async function doLogin() {
     setSubmitting(true);
     try {
       const response = await fetch("http://localhost:5000/api/auth/login", {
@@ -138,6 +146,7 @@ export default function Login() {
           <p className="login-subheading">
             Continue discovering books and tracking your reading.
           </p>
+
           {location.state?.registered && (
             <p className="login-success">
               <svg
@@ -155,6 +164,7 @@ export default function Login() {
               Account created. Sign in to continue.
             </p>
           )}
+
           <form onSubmit={handleSubmit} className="login-form" noValidate>
             <label className="login-label" htmlFor="login-email">
               Email
@@ -196,6 +206,16 @@ export default function Login() {
           </p>
         </div>
       </div>
+
+      {captchaModalOpen && (
+        <CaptchaModal
+          onClose={() => setCaptchaModalOpen(false)}
+          onVerified={() => {
+            setCaptchaModalOpen(false);
+            doLogin();
+          }}
+        />
+      )}
     </div>
   );
 }
