@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { API_URL } from "../config/api";
 
 const AuthContext = createContext(null);
 
@@ -16,7 +17,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/shelf", {
+      const response = await fetch(`${API_URL}/api/shelf`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

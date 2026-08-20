@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Loader from "../components/Loader";
 import { useRef } from "react";
+import { API_URL } from "../config/api";
 
 function BookDetail() {
   const { shelfItemId } = useParams();
@@ -32,14 +33,11 @@ function BookDetail() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `http://localhost:5000/api/shelf/${shelfItemId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_URL}/api/shelf/${shelfItemId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("Unable to load this book.");
@@ -67,17 +65,14 @@ function BookDetail() {
     setError("");
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/shelf/${shelfItemId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updates),
+      const response = await fetch(`${API_URL}/api/shelf/${shelfItemId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify(updates),
+      });
 
       if (!response.ok) {
         throw new Error("Unable to update this book.");
@@ -162,15 +157,12 @@ function BookDetail() {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/shelf/${shelfItemId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_URL}/api/shelf/${shelfItemId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("Unable to remove this book.");

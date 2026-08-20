@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
 import Loader from "../components/Loader";
+import { API_URL } from "../config/api";
 
 function Reading() {
   const [shelfItems, setShelfItems] = useState([]);
@@ -25,7 +26,7 @@ function Reading() {
         setError("");
 
         const response = await fetch(
-          "http://localhost:5000/api/shelf?status=currently_reading",
+          `${API_URL}/api/shelf?status=currently_reading`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

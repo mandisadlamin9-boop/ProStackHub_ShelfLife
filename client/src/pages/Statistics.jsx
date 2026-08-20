@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
 import Loader from "../components/Loader";
+import { API_URL } from "../config/api";
 
 const STATUS_META = [
   { key: "wantToReadCount", label: "Want to Read", color: "var(--teal)" },
@@ -138,7 +139,7 @@ function Statistics() {
         setLoading(true);
         setError("");
 
-        const response = await fetch("http://localhost:5000/api/shelf/stats", {
+        const response = await fetch(`${API_URL}/api/shelf/stats`, {
           headers: {
             Authorization: "Bearer " + token,
           },

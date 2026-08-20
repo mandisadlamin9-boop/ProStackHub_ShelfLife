@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
 import Loader from "../components/Loader";
+import { API_URL } from "../config/api";
 
 const SECTION_ACCENTS = {
   "Currently Reading": "#EF9F27",
@@ -30,7 +31,7 @@ function MyShelf() {
         setLoading(true);
         setError("");
 
-        const response = await fetch("http://localhost:5000/api/shelf", {
+        const response = await fetch(`${API_URL}/api/shelf`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

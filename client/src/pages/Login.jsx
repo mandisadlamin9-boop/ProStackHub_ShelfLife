@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import CaptchaModal from "../components/CaptchaModal";
+import { API_URL } from "../config/api";
 
 const SHELF_ROWS = [
   [
@@ -91,7 +92,7 @@ export default function Login() {
   async function doLogin() {
     setSubmitting(true);
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

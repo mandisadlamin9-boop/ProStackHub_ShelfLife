@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import Header from "../components/Header";
 import Loader from "../components/Loader";
+import { API_URL } from "../config/api";
 import BookCardSkeleton from "../components/BookCardSkeleton";
 
 const HERO_SLIDE_COUNT = 5;
@@ -75,7 +76,7 @@ function Discover() {
       setActiveSlide(0);
 
       const response = await fetch(
-        `http://localhost:5000/api/books/search?q=${encodeURIComponent(query)}`,
+        `${API_URL}/api/books/search?q=${encodeURIComponent(query)}`,
       );
 
       if (!response.ok) {
@@ -176,7 +177,7 @@ function Discover() {
     addToShelfIds(book.id);
 
     try {
-      const response = await fetch("http://localhost:5000/api/shelf", {
+      const response = await fetch(`${API_URL}/api/shelf`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

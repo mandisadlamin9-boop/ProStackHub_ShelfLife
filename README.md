@@ -13,18 +13,22 @@ ShelfLife is a full-stack personal reading tracker. Search for books, add them t
 ## Tech Stack
 
 **Frontend**
+
 - React (Vite)
 
 **Backend**
+
 - Node.js + Express
 - Azure SQL Database (via `mssql`/Tedious)
 - JWT authentication
 - bcryptjs for password hashing
 
 **External APIs**
+
 - Google Books API for book search
 
 **Deployment**
+
 - Frontend: Vercel
 - Backend: Render
 - Database: Azure SQL Database (free tier, serverless)
@@ -75,7 +79,7 @@ Run the server:
 npm start
 ```
 
-The API runs on `http://localhost:5000` by default.
+The API runs on `${API_URL}` by default.
 
 ### Frontend Setup
 
@@ -89,17 +93,17 @@ The app runs on `http://localhost:5173` by default.
 
 ## API Overview
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/books/search` | Search for books |
-| POST | `/api/auth/register` | Create a new account |
-| POST | `/api/auth/login` | Log in and receive a JWT |
-| GET | `/api/shelf` | Get the logged-in user's shelf |
-| POST | `/api/shelf` | Add a book to the shelf |
-| GET | `/api/shelf/:id` | Get a single shelf item |
-| PATCH | `/api/shelf/:id` | Update status, progress, rating, or review |
-| DELETE | `/api/shelf/:id` | Remove a book from the shelf |
-| GET | `/api/shelf/stats` | Get reading statistics |
+| Method | Endpoint             | Description                                |
+| ------ | -------------------- | ------------------------------------------ |
+| GET    | `/api/books/search`  | Search for books                           |
+| POST   | `/api/auth/register` | Create a new account                       |
+| POST   | `/api/auth/login`    | Log in and receive a JWT                   |
+| GET    | `/api/shelf`         | Get the logged-in user's shelf             |
+| POST   | `/api/shelf`         | Add a book to the shelf                    |
+| GET    | `/api/shelf/:id`     | Get a single shelf item                    |
+| PATCH  | `/api/shelf/:id`     | Update status, progress, rating, or review |
+| DELETE | `/api/shelf/:id`     | Remove a book from the shelf               |
+| GET    | `/api/shelf/stats`   | Get reading statistics                     |
 
 Routes marked as requiring auth expect a `Bearer` JWT in the `Authorization` header, obtained from `/api/auth/login`.
 
