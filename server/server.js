@@ -15,10 +15,13 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://pro-stack-hub-shelf-life.vercel.app",
+    ],
+    credentials: true,
   }),
 );
-
 /* =========================================================
    HEALTH CHECK
 ========================================================= */
