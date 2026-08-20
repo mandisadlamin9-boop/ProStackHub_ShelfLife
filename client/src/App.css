@@ -345,10 +345,11 @@ button {
   background: var(--white);
 }
 .topbar-shell {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
-  width: 100%;
   background: var(--white);
   border-bottom: 1px solid var(--border);
 }
@@ -2338,6 +2339,7 @@ button {
 
 .shelf-life {
   animation: pageFadeIn 0.35s ease;
+  padding-top: 82px;
 }
 
 @keyframes pageFadeIn {
