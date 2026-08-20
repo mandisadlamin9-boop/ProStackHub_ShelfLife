@@ -91,10 +91,10 @@ button {
 
 .hero-carousel {
   position: relative;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
+  width: 100%;
   background: var(--hero-violet);
   padding: 48px 0 28px;
+  overflow: hidden;
 }
 
 .hero-inner {
@@ -224,14 +224,14 @@ button {
 
 .shelf-hero {
   position: relative;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
+  width: 100%;
   background: var(--hero-violet);
   padding: 56px 24px 64px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: hidden;
 }
 
 .shelf-hero-kicker {
