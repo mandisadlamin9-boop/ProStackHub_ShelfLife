@@ -2507,3 +2507,69 @@ button {
   background: var(--border);
   color: var(--charcoal);
 }
+/* =========================================================
+   MOBILE NAV
+========================================================= */
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-menu-button {
+  display: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  font-size: 16px;
+  color: var(--charcoal);
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-nav-menu {
+  display: none;
+}
+
+@media (max-width: 850px) {
+  .mobile-menu-button {
+    display: flex;
+  }
+
+  .mobile-nav-menu {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px 16px;
+    z-index: 40;
+  }
+
+  .mobile-nav-menu .nav-item {
+    padding: 12px 8px;
+    text-align: left;
+    border-radius: 0;
+    border-bottom: 1px solid var(--paper);
+  }
+
+  .mobile-nav-menu .nav-item.active {
+    background: transparent;
+    color: var(--violet);
+    font-weight: 700;
+  }
+
+  .topbar {
+    position: relative;
+  }
+
+  .account-label {
+    display: none;
+  }
+}

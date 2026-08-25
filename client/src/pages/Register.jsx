@@ -161,7 +161,7 @@ export default function Register() {
               autoComplete="name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Jordan Lee"
+              placeholder="Lihle Lungwase"
             />
 
             <label className="login-label" htmlFor="register-email">

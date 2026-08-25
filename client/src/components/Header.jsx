@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 function Header() {
   const { isLoggedIn, currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const getUserInitial = () => {
     if (!currentUser?.FullName) {
@@ -14,66 +16,45 @@ function Header() {
   };
 
   const handleLogout = () => {
+    setMobileMenuOpen(false);
     logout();
     navigate("/");
   };
 
+  const navLinkClass = ({ isActive }) =>
+    isActive ? "nav-item active" : "nav-item";
+
   return (
-    <div className="topbar-shell">
-      <header className="topbar">
-        <Link to="/" className="brand" aria-label="ShelfLife home">
-          <span className="brand-mark">
-            <span />
-            <span />
-          </span>
+    <header className="topbar">
+      <Link to="/" className="brand" aria-label="ShelfLife home">
+        <span className="brand-mark">
+          <span />
+          <span />
+        </span>
 
-          <span className="brand-name">ShelfLife</span>
-        </Link>
+        <span className="brand-name">ShelfLife</span>
+      </Link>
 
-        <nav className="desktop-navigation">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              isActive ? "nav-item active" : "nav-item"
-            }
-          >
-            Discover
-          </NavLink>
+      <nav className="desktop-navigation">
+        <NavLink to="/" end className={navLinkClass}>
+          Discover
+        </NavLink>
+        <NavLink to="/my-shelf" className={navLinkClass}>
+          My Shelf
+        </NavLink>
+        <NavLink to="/reading" className={navLinkClass}>
+          Reading
+        </NavLink>
+        <NavLink to="/statistics" className={navLinkClass}>
+          Statistics
+        </NavLink>
+      </nav>
 
-          <NavLink
-            to="/my-shelf"
-            className={({ isActive }) =>
-              isActive ? "nav-item active" : "nav-item"
-            }
-          >
-            My Shelf
-          </NavLink>
-
-          <NavLink
-            to="/reading"
-            className={({ isActive }) =>
-              isActive ? "nav-item active" : "nav-item"
-            }
-          >
-            Reading
-          </NavLink>
-
-          <NavLink
-            to="/statistics"
-            className={({ isActive }) =>
-              isActive ? "nav-item active" : "nav-item"
-            }
-          >
-            Statistics
-          </NavLink>
-        </nav>
-
+      <div className="header-right">
         {isLoggedIn && currentUser ? (
           <div className="account-area">
             <button className="account-button">
               <span className="account-avatar">{getUserInitial()}</span>
-
               <span className="account-label">{currentUser.FullName}</span>
             </button>
 
@@ -84,12 +65,55 @@ function Header() {
         ) : (
           <Link to="/login" className="account-button">
             <span className="account-avatar">S</span>
-
             <span className="account-label">Sign in</span>
           </Link>
         )}
-      </header>
-    </div>
+
+        <button
+          type="button"
+          className="mobile-menu-button"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
+        >
+          {mobileMenuOpen ? "✕" : "☰"}
+        </button>
+      </div>
+
+      {mobileMenuOpen && (
+        <nav className="mobile-nav-menu">
+          <NavLink
+            to="/"
+            end
+            className={navLinkClass}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Discover
+          </NavLink>
+          <NavLink
+            to="/my-shelf"
+            className={navLinkClass}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            My Shelf
+          </NavLink>
+          <NavLink
+            to="/reading"
+            className={navLinkClass}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Reading
+          </NavLink>
+          <NavLink
+            to="/statistics"
+            className={navLinkClass}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Statistics
+          </NavLink>
+        </nav>
+      )}
+    </header>
   );
 }
 
