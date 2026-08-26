@@ -71,6 +71,15 @@ button {
    TOPBAR
 ========================================================= */
 
+.topbar-wrapper {
+  width: 100%;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
 .topbar {
   width: min(1380px, calc(100% - 64px));
   height: 82px;
@@ -79,11 +88,6 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  border-bottom: 1px solid var(--border);
-
-  position: relative;
-  z-index: 10;
 }
 /* =========================================================
    HERO CAROUSEL
@@ -2339,7 +2343,7 @@ button {
 
 .shelf-life {
   animation: pageFadeIn 0.35s ease;
-  padding-top: 82px;
+  padding-top: 10px;
 }
 
 @keyframes pageFadeIn {
